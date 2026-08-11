@@ -71,7 +71,10 @@ function Get-UeEnvValue {
 
 function Resolve-UeEnv {
     [CmdletBinding()]
-    param()
+    param(
+        # For apply_codegen / text-only workflows before an engine is installed.
+        [switch]$SkipEngineValidation
+    )
 
     $repoRoot = Get-RepoRoot
     $envFile = Join-Path $repoRoot 'ue.local.env'
@@ -83,9 +86,11 @@ function Resolve-UeEnv {
     $ueTarget = Get-UeEnvValue -FileMap $fileMap -Name 'UE_TARGET' -Default ($ueProject + 'Editor')
     $uePlatform = Get-UeEnvValue -FileMap $fileMap -Name 'UE_PLATFORM' -Default 'Win64'
     $ueConfig = Get-UeEnvValue -FileMap $fileMap -Name 'UE_CONFIG' -Default 'Development'
+    $buildBat = ''
 
-    if ([string]::IsNullOrWhiteSpace($ueRoot)) {
-        throw @"
+    if (-not $SkipEngineValidation) {
+        if ([string]::IsNullOrWhiteSpace($ueRoot)) {
+            throw @"
 UE_ROOT is not set.
 
 On this machine, either:
@@ -93,20 +98,27 @@ On this machine, either:
   2) Set process/user env var UE_ROOT to your Unreal Engine root
      (the folder that contains Engine\Build\BatchFiles\Build.bat).
 "@
-    }
+        }
 
-    if (-not (Test-Path -LiteralPath $ueRoot)) {
-        throw "UE_ROOT does not exist: $ueRoot"
-    }
+        if (-not (Test-Path -LiteralPath $ueRoot)) {
+            throw "UE_ROOT does not exist: $ueRoot"
+        }
 
-    $buildBat = Join-Path $ueRoot 'Engine\Build\BatchFiles\Build.bat'
-    if (-not (Test-Path -LiteralPath $buildBat)) {
-        throw "Build.bat not found under UE_ROOT. Expected: $buildBat"
+        $buildBat = Join-Path $ueRoot 'Engine\Build\BatchFiles\Build.bat'
+        if (-not (Test-Path -LiteralPath $buildBat)) {
+            throw "Build.bat not found under UE_ROOT. Expected: $buildBat"
+        }
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($ueRoot)) {
+        $candidate = Join-Path $ueRoot 'Engine\Build\BatchFiles\Build.bat'
+        if (Test-Path -LiteralPath $candidate) {
+            $buildBat = $candidate
+        }
     }
 
     $uproject = Join-Path $repoRoot ($ueProject + '.uproject')
     if (-not (Test-Path -LiteralPath $uproject)) {
-        $discovered = Get-ChildItem -LiteralPath $repoRoot -Filter '*.uproject' -File -ErrorAction SilentlyContinue
+        $discovered = @(Get-ChildItem -LiteralPath $repoRoot -Filter '*.uproject' -File -ErrorAction SilentlyContinue)
         if ($discovered.Count -eq 1) {
             $uproject = $discovered[0].FullName
             $ueProject = [System.IO.Path]::GetFileNameWithoutExtension($discovered[0].Name)
@@ -118,14 +130,14 @@ On this machine, either:
     }
 
     return [pscustomobject]@{
-        RepoRoot   = $repoRoot
-        EnvFile    = $envFile
-        UE_ROOT    = $ueRoot
-        UE_PROJECT = $ueProject
-        UE_TARGET  = $ueTarget
+        RepoRoot    = $repoRoot
+        EnvFile     = $envFile
+        UE_ROOT     = $ueRoot
+        UE_PROJECT  = $ueProject
+        UE_TARGET   = $ueTarget
         UE_PLATFORM = $uePlatform
-        UE_CONFIG  = $ueConfig
-        BuildBat   = $buildBat
-        UProject   = $uproject
+        UE_CONFIG   = $ueConfig
+        BuildBat    = $buildBat
+        UProject    = $uproject
     }
 }

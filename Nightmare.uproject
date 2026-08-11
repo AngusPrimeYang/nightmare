@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.5",
+	"Category": "",
+	"Description": "Nightmare — UE5 loop-engineering game project",
+	"Modules": [
+		{
+			"Name": "Nightmare",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

@@ -7,6 +7,12 @@
   Loop-engineering apply step. Rejects patch/diff fragments. Destinations are resolved
   under <RepoRoot>/Source/ unless -DestinationRoot is provided.
 
+  Preferred staging layout (mirrors Source/):
+    codegen_staging/Nightmare/MyActor.h
+    codegen_staging/Nightmare/MyActor.cpp
+  Apply with: -SourcePath .\codegen_staging
+  Result: Source/Nightmare/MyActor.h|.cpp
+
 .PARAMETER SourcePath
   File or directory containing complete source files to apply.
 
@@ -35,7 +41,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'Resolve-UeEnv.ps1')
-$envInfo = Resolve-UeEnv
+# Apply is text-only; do not require a local Unreal install.
+$envInfo = Resolve-UeEnv -SkipEngineValidation
 
 if ([string]::IsNullOrWhiteSpace($DestinationRoot)) {
     $DestinationRoot = Join-Path $envInfo.RepoRoot 'Source'
@@ -51,12 +58,19 @@ if (-not (Test-Path -LiteralPath $DestinationRoot)) {
     }
 }
 
+$allowedExtensions = @('.h', '.hpp', '.cpp', '.c', '.cs', '.inl')
 $files = @()
 if (Test-Path -LiteralPath $resolvedSource -PathType Leaf) {
-    $files = @(Get-Item -LiteralPath $resolvedSource)
+    $item = Get-Item -LiteralPath $resolvedSource
+    if ($allowedExtensions -contains $item.Extension.ToLowerInvariant()) {
+        $files = @($item)
+    }
 }
 else {
-    $files = @(Get-ChildItem -LiteralPath $resolvedSource -Recurse -File -Include *.h, *.hpp, *.cpp, *.c, *.cs, *.inl)
+    $files = @(
+        Get-ChildItem -LiteralPath $resolvedSource -Recurse -File |
+            Where-Object { $allowedExtensions -contains $_.Extension.ToLowerInvariant() }
+    )
 }
 
 if ($files.Count -eq 0) {

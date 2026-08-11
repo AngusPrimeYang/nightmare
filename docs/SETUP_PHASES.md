@@ -11,8 +11,8 @@
 | 階段 | 名稱 | 是否需要已安裝 UE | 目前狀態 |
 |------|------|-------------------|----------|
 | A | 倉庫與迴圈工程基建 | 否 | **已完成** |
-| B | GitHub 遠端與換機（clone 後微調） | 否 | **可立即做** |
-| C | 無引擎下的專案骨架與產碼演練 | 否 | **可立即做** |
+| B | GitHub 遠端與換機（clone 後微調） | 否 | **已完成** |
+| C | 無引擎下的專案骨架與產碼演練 | 否 | **已完成** |
 | D | 安裝引擎與本機編譯前置 | **是**（引擎 + MSVC 工具鏈） | 受阻／待做 |
 | E | 首次編譯與編輯器驗證 | 是 | 待做 |
 | F | 迴圈閉環強化（可選） | 建議已有引擎 | 刻意延後 |
@@ -20,7 +20,7 @@
 **工作流前提：** 專案以 GitHub 為單一來源；換電腦 = `git clone` + 調整本機 `ue.local.env`（主要是 `UE_ROOT`），不在每台機器重做專案基建。
 
 **目前阻塞點：** 無法透過 Epic Launcher 安裝 UE → 階段 D/E 暫停。  
-**建議策略：** 先做完 A–C 並推上 GitHub，把「clone 後一有引擎就能編譯」的狀態準備好。
+**建議策略：** A–C 已完成；將骨架 **commit / push** 後等待 D（裝引擎），再跑 E 編譯驗證。
 
 ---
 
@@ -28,25 +28,33 @@
 
 ```
 nightmare/
-├── .cursorrules                 # 迴圈工程規範 + 可攜式 UE_ROOT 說明
-├── .cursor/rules/ue5-loop.mdc   # Cursor 常駐規則
-├── .gitignore                   # UE 產物 / ue.local.env
-├── .gitattributes               # Git LFS 資產規則
-├── ue.local.env.example         # 本機環境範本
+├── Nightmare.uproject
+├── .cursorrules
+├── .cursor/rules/ue5-loop.mdc
+├── .gitignore / .gitattributes
+├── ue.local.env.example
+├── Config/                      # DefaultEngine/Game/Input.ini
+├── Content/.gitkeep
+├── Source/
+│   ├── Nightmare.Target.cs
+│   ├── NightmareEditor.Target.cs
+│   └── Nightmare/
+│       ├── Nightmare.Build.cs
+│       ├── Nightmare.h / .cpp
+│       └── NightmareLoopActor.h / .cpp   # C9 apply_codegen 演練產物
 ├── Scripts/
-│   ├── Resolve-UeEnv.ps1        # 解析 UE_ROOT 等外部參數
-│   ├── build_and_test.ps1       # UBT 編譯閘門
-│   └── apply_codegen.ps1        # 完整檔案覆寫閘門
-└── docs/
-    └── SETUP_PHASES.md          # 本文件
+│   ├── Resolve-UeEnv.ps1        # 支援 -SkipEngineValidation（無引擎可 apply）
+│   ├── build_and_test.ps1
+│   └── apply_codegen.ps1
+├── codegen_staging/             # gitignored；本機產碼暫存
+└── docs/SETUP_PHASES.md
 ```
 
-**尚未存在（預期後續產生）：**
+**仍為本機／日後產生：**
 
-- `Nightmare.uproject`
-- `Source/`、`Config/`、`Content/`
-- 本機 `ue.local.env`（gitignored，每台機器自建）
-- Visual Studio / Rider 專案檔（可由引擎產生，非必須提交）
+- 本機 `ue.local.env`（gitignored）
+- Visual Studio / Rider 專案檔（GenerateProjectFiles，非必須提交）
+- 真實編譯產物（`Binaries/` 等，已 ignore）
 
 ---
 
@@ -99,8 +107,8 @@ nightmare/
 | # | 項目 | 狀態 | 說明 |
 |---|------|------|------|
 | B1 | 確認敏感／本機檔不會進遠端 | `[x]` | `ue.local.env` 已在 `.gitignore`；範本用 `ue.local.env.example` |
-| B2 | 將目前基建 commit（若尚未） | `[ ]` | 含 Scripts、rules、gitignore、gitattributes、docs |
-| B3 | Push 到 GitHub（`origin`） | `[ ]` | 之後以遠端為準繼續開發 |
+| B2 | 將目前基建 commit（若尚未） | `[x]` | working tree clean；含 Scripts、rules、gitignore、gitattributes、docs |
+| B3 | Push 到 GitHub（`origin`） | `[x]` | `origin` = `https://github.com/AngusPrimeYang/nightmare.git`；`main` 與 `origin/main` 同步 |
 | B4 | 驗證換機流程文件化 | `[x]` | 見下方「換機三步」；與 §5 一致 |
 
 **換機三步（每台新電腦，不做專案重建）：**
@@ -125,19 +133,19 @@ nightmare/
 
 | # | 項目 | 狀態 | 說明 |
 |---|------|------|------|
-| C1 | 新增 `Nightmare.uproject` | `[ ]` | `EngineAssociation` 填你預計安裝的版本（如 `"5.5"`） |
-| C2 | 新增 `Source/Nightmare.Target.cs` | `[ ]` | Game Target |
-| C3 | 新增 `Source/NightmareEditor.Target.cs` | `[ ]` | Editor Target |
-| C4 | 新增 `Source/Nightmare/Nightmare.Build.cs` | `[ ]` | 模組依賴 |
-| C5 | 新增模組啟動碼 `Nightmare.h` / `Nightmare.cpp` | `[ ]` | `IMPLEMENT_PRIMARY_GAME_MODULE` |
-| C6 | 基礎 `Config/DefaultEngine.ini` 等 | `[ ]` | 可最小集合 |
-| C7 | 空的 `Content/`（可放 `.gitkeep`） | `[ ]` | 資產之後用 LFS |
-| C8 | 建立 `codegen_staging/` 演練目錄 | `[ ]` | 已被 gitignore 亦可本機自建 |
-| C9 | 用 Agent 產出一個完整 `AActor` 範例並 `apply_codegen` | `[ ]` | **不編譯**，只驗證整檔覆寫 |
-| C10 | （可選）grep CI：禁止 `std::string` / `#include <string>` | `[ ]` | 無 UE 也可做 |
+| C1 | 新增 `Nightmare.uproject` | `[x]` | `EngineAssociation`: `"5.5"`（與 `ue.local.env.example` 對齊） |
+| C2 | 新增 `Source/Nightmare.Target.cs` | `[x]` | Game Target |
+| C3 | 新增 `Source/NightmareEditor.Target.cs` | `[x]` | Editor Target |
+| C4 | 新增 `Source/Nightmare/Nightmare.Build.cs` | `[x]` | Core / CoreUObject / Engine / InputCore |
+| C5 | 新增模組啟動碼 `Nightmare.h` / `Nightmare.cpp` | `[x]` | `IMPLEMENT_PRIMARY_GAME_MODULE` |
+| C6 | 基礎 `Config/DefaultEngine.ini` 等 | `[x]` | Engine / Game / Input |
+| C7 | 空的 `Content/`（可放 `.gitkeep`） | `[x]` | |
+| C8 | 建立 `codegen_staging/` 演練目錄 | `[x]` | gitignored；本機已建並用於 C9 |
+| C9 | 完整 `AActor` + `apply_codegen` | `[x]` | `ANightmareLoopActor` → `Source/Nightmare/`（無引擎可跑） |
+| C10 | （可選）grep CI：禁止 `std::string` | `[ ]` | **刻意延後**，非本階段必要 |
 
 **階段 C 完成判準：**  
-`apply_codegen.ps1` 能把完整 `.h/.cpp` 寫進 `Source/`；repo 具備可提交的 C++ 骨架（仍未證明能編譯）。
+`apply_codegen.ps1` 能把完整 `.h/.cpp` 寫進 `Source/`；repo 具備可提交的 C++ 骨架（仍未證明能編譯）。→ **已達成（2026-08-11）**
 
 ---
 
@@ -189,11 +197,8 @@ nightmare/
 ### 現在就能做（無 Launcher）
 
 ```
-B2 → B3（commit + push 到 GitHub）
-        ↓
-   C1 → C7（骨架，繼續 commit / push）
-        ↓
-   C8 → C9（本機 apply_codegen 演練，不必為 staging 推遠端）
+將階段 C 骨架 commit / push 到 GitHub
+（之後等待階段 D：安裝引擎）
 ```
 
 ### 任意新電腦（有無引擎都一樣先做）
@@ -250,8 +255,8 @@ D1 → D2 → D3 → D4 → D5
 | 階段 | 進度 |
 |------|------|
 | A 基建 | **完成** |
-| B GitHub / 換機 | 基建可推；B2/B3 待 commit+push |
-| C 無引擎骨架 | 未開始（可做，做完繼續 push） |
+| B GitHub / 換機 | **完成** |
+| C 無引擎骨架 | **完成**（待 commit/push 同步遠端） |
 | D 引擎 + 本機編譯前置 | **阻塞**（無 Launcher） |
 | E 編譯驗證 | 等待 D |
 | F 可選強化 | 延後 |
@@ -260,10 +265,5 @@ D1 → D2 → D3 → D4 → D5
 
 ## 8. 下一刀建議（單一任務）
 
-若只選一件「現在就做」：
-
-**優先做階段 C（骨架進 repo）→ 再 B2/B3 push 到 GitHub。**  
-
-之後任何機器都是 clone + 改 `UE_ROOT`；引擎一裝好跑 `build_and_test.ps1` 即可，不必重搭專案。
-
-若要 Agent 直接產骨架，指定目標引擎版本字串（例如 `5.5`）即可。
+1. **立刻：** 把階段 C 變更 **commit / push** 到 GitHub。  
+2. **之後：** 階段 D（裝 UE + Build Tools + 填 `UE_ROOT`）→ E（`build_and_test.ps1`）。
