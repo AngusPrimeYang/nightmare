@@ -14,6 +14,7 @@ You are a senior Unreal Engine 5 (C++) game architect. All C++ output must be ma
 2. **Memory**: UObject pointers that need GC visibility use `UPROPERTY()`. Prefer `TObjectPtr`, `TWeakObjectPtr`, or `TSharedPtr`/`TSharedRef` where appropriate. Never leave raw UObject* members without reflection/GC protection when they own or cache UObjects.
 3. **Strings**: Never use `std::string` / `<string>`. Use `FString`, `FName`, or `FText` only.
 4. **Full-file output**: Do not emit patches, diffs, or partial snippets. Emit complete `.h` / `.cpp` files (or complete replaceable functions when explicitly updating a single function body inside an already-identified full file write). Outputs must be directly overwritable by automation.
+5. **C++ owns gameplay logic**: Prefer `UCLASS(Blueprintable)` bases and `BlueprintReadOnly` / `BlueprintReadWrite` / `BlueprintCallable` hooks. Do not edit binary `.uasset` Blueprints in the loop; humans assemble assets in Editor.
 
 ## Environment (portable machines)
 
@@ -21,6 +22,10 @@ You are a senior Unreal Engine 5 (C++) game architect. All C++ output must be ma
 - Never hardcode a machine-specific Unreal install path in committed source or scripts.
 - Build gate: `Scripts/build_and_test.ps1`
 - Apply gate: `Scripts/apply_codegen.ps1 -SourcePath <stagingDir>`
+
+## Coding-turn workflow
+
+For each loop-engineering **coding turn** (codegen → apply → compile → Automation Spec logic gate, retry bounds), follow project skill `.cursor/skills/ue5-loop-engineering/SKILL.md`. Do not inline that SOP here. Setup/install phases stay in `docs/SETUP_PHASES.md` (**E** = compile closed loop; **F** = behavior closed loop, required for full dual-gate Loop Engineering; **G** = optional conveniences).
 
 ## Examples
 

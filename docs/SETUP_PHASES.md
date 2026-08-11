@@ -14,13 +14,25 @@
 | B | GitHub 遠端與換機（clone 後微調） | 否 | **已完成** |
 | C | 無引擎下的專案骨架與產碼演練 | 否 | **已完成** |
 | D | 安裝引擎與本機編譯前置 | **是**（引擎 + MSVC 工具鏈） | 受阻／待做 |
-| E | 首次編譯與編輯器驗證 | 是 | 待做 |
-| F | 迴圈閉環強化（可選） | 建議已有引擎 | 刻意延後 |
+| E | 編譯閉環（首次編譯與編輯器驗證） | 是 | 待做 |
+| F | 行為閉環（Logic Gate + Spec） | 是 | **Loop Engineering 必要**；接在 E 後，待做 |
+| G | 便利強化（Hook／CI／資產規範等） | 建議已有引擎 | **可選**；刻意延後 |
+
+**閉環分層（勿混淆）：**
+
+| 層級 | 階段 | 意義 |
+|------|------|------|
+| 編譯閉環 | E | 產碼 → apply → build 能通；尚缺行為契約 |
+| 行為閉環 | F | RunTests + 至少一條 Spec；少人介入的 Loop Engineering **就緒** |
+| 便利強化 | G | Hook／CI 等；不擋開工 |
+
+**順序硬約束：** `D → E → F`（**不可**把 F 排在 E 之前；無成功編譯則 Logic Gate 無意義）。  
+換機：架構跟 GitHub；本機只需再驗 D→E（repo 已有 F 腳本／Spec 時，再煙霧跑一次 Logic Gate）。
 
 **工作流前提：** 專案以 GitHub 為單一來源；換電腦 = `git clone` + 調整本機 `ue.local.env`（主要是 `UE_ROOT`），不在每台機器重做專案基建。
 
-**目前阻塞點：** 無法透過 Epic Launcher 安裝 UE → 階段 D/E 暫停。  
-**建議策略：** A–C 已完成；將骨架 **commit / push** 後等待 D（裝引擎），再跑 E 編譯驗證。
+**目前阻塞點：** 無法透過 Epic Launcher 安裝 UE → 階段 D/E/F 暫停。  
+**建議策略：** A–C 已完成；commit / push 後等待 D → E（編譯閉環）→ **立刻做 F**（行為閉環），再宣稱 Loop Engineering 就緒。
 
 ---
 
@@ -73,7 +85,7 @@ nightmare/
 
 **明確做不到（需 UE）：**
 
-- 真實編譯、連結、開編輯器、Live Coding、Cook/Package、驗證反射／藍圖編譯。
+- 真實編譯、連結、開編輯器、Live Coding、Cook/Package、驗證反射／藍圖編譯、Automation RunTests（階段 F）。
 
 ---
 
@@ -91,7 +103,7 @@ nightmare/
 | A6 | `.cursor/rules/ue5-loop.mdc` | `[x]` | |
 | A7 | `.gitignore` | `[x]` | |
 | A8 | `.gitattributes`（LFS） | `[x]` | |
-| A9 | Cursor Hook 自動化（原 3.4） | `[ ]` | **刻意不做**，之後可選 |
+| A9 | Cursor Hook 自動化（原 3.4） | `[ ]` | **刻意不做**；歸階段 G（可選），不擋 E／F |
 
 **階段 A 結論：** 基建完成；應進 git 並由階段 B 推上 GitHub，再做 C。
 
@@ -175,20 +187,36 @@ nightmare/
 | E2 | `.\Scripts\build_and_test.ps1` 編譯 `NightmareEditor` | `[ ]` | log 在 `Saved/LoopEngineering/` |
 | E3 | 用 `UnrealEditor.exe` 開啟專案 | `[ ]` | |
 | E4 | 確認階段 C 的範例 Actor 可放進關卡 / 編譯進編輯器 | `[ ]` | |
-| E5 | 固定「產碼 → apply → build」一次成功閉環 | `[ ]` | 迴圈工程最小可用 |
+| E5 | 固定「產碼 → apply → build」一次成功 | `[ ]` | **編譯閉環**就緒；尚未含行為閘門 |
 
-**階段 E 完成判準：** Editor 可開、腳本編譯成功、至少一個 C++ Actor 可用。
+**階段 E 完成判準：** Editor 可開、腳本編譯成功、至少一個 C++ Actor 可用。  
+**注意：** E 完成 ≠ Loop Engineering 行為閉環就緒；下一步必須進階段 F（勿跳過、勿與 G 混為「可選」）。
 
 ---
 
-### 階段 F — 可選強化（有引擎後再做）
+### 階段 F — 行為閉環（Loop Engineering **必要**；必須在 E 之後）
+
+> 目標：把「行為對不對」收進自動閘門，避免每回合靠人 PIE／肉眼當 oracle。  
+> 依賴：階段 E 已通過。回合 SOP／Spec 寫法見 `.cursor/skills/ue5-loop-engineering/`。
 
 | # | 項目 | 狀態 | 說明 |
 |---|------|------|------|
-| F1 | Cursor Hook：存檔/套用後自動編譯 | `[ ]` | 原步驟 3.4，先前刻意不做 |
-| F2 | Rider 除錯設定文件化 | `[ ]` | |
-| F3 | CI 上跑 UBT（需自備 runner + 引擎） | `[ ]` | 成本高 |
-| F4 | 內容管線 / 資產命名 / 模組拆分規範 | `[ ]` | |
+| F1 | `build_and_test.ps1` 支援 Logic Gate（`UE_RUN_TESTS` / RunTests；可 `-SkipTests` 只編） | `[ ]` | 編譯成功後可跑 `Automation RunTests`；summary 寫入 `Saved/LoopEngineering/` |
+| F2 | 至少一條穩定 smoke Spec（如 `Nightmare.Smoke`）進 repo | `[ ]` | `#if WITH_DEV_AUTOMATION_TESTS`；純邏輯優先，避免 PIE／時序 flaky |
+| F3 | 本機煙霧：編譯後 Logic Gate 對 `UE_TEST_FILTER`（預設 `Nightmare.`）一次綠燈 | `[ ]` | 證明這台機器行為閘門可用 |
+
+**階段 F 完成判準：** RunTests 可由腳本觸發；至少一條 Spec 綠；**此時才稱 Loop Engineering（雙閘門）就緒**。
+
+---
+
+### 階段 G — 可選強化（不擋雙閘門開工）
+
+| # | 項目 | 狀態 | 說明 |
+|---|------|------|------|
+| G1 | Cursor Hook：存檔/套用後自動編譯 | `[ ]` | 原 A9／舊 F1；等 E+F 穩定再考慮 |
+| G2 | Rider 除錯設定文件化 | `[ ]` | |
+| G3 | CI 上跑 UBT（需自備 runner + 引擎） | `[ ]` | 成本高 |
+| G4 | 內容管線 / 資產命名 / 模組拆分規範 | `[ ]` | |
 
 ---
 
@@ -207,19 +235,21 @@ nightmare/
 git clone → copy ue.local.env.example → 填 UE_ROOT（有引擎再填）
 ```
 
-### 引擎可安裝之後（該機器第一次要編譯）
+### 引擎可安裝之後（該機器第一次要閉環）
 
 ```
 D1 → D2 → D3 → D4 → D5
         ↓
-   E2 → E3 → E4 → E5
+   E2 → E3 → E4 → E5          ← 編譯閉環
         ↓
-   （可選）F1…
+   F1 → F2 → F3               ← 行為閉環（必要；不可跳過）
+        ↓
+   （可選）G1…
 ```
 
-### 刻意不做
+### 刻意延後（階段 G）
 
-- F1 / 原 3.4 Cursor Hook：等 E5 穩定再考慮。
+- G1 / 原 Cursor Hook：等 E+F 穩定再考慮。
 
 ---
 
@@ -229,10 +259,12 @@ D1 → D2 → D3 → D4 → D5
 
 1. `git clone <repo>`（若使用 LFS 資產：該機執行過 `git lfs install`）
 2. `copy ue.local.env.example ue.local.env` → **只改 `UE_ROOT`**
-3. 若要編譯：確認本機已有 UE + VS Build Tools（階段 D）
-4. `.\Scripts\build_and_test.ps1`
+3. 若要編譯／跑迴圈：確認本機已有 UE + VS Build Tools（階段 D）
+4. `.\Scripts\build_and_test.ps1`（編譯閉環煙霧）
+5. 若 repo 已完成階段 F：再開 Logic Gate（`UE_RUN_TESTS=1` 或腳本約定方式）對 `Nightmare.` 煙霧一次
 
-**不要**把 `ue.local.env` 提交進 git。專案內容一律靠 GitHub 同步。
+**不要**把 `ue.local.env` 提交進 git。專案內容一律靠 GitHub 同步。  
+**不必**每台重做 F1／F2 的設計；只需確認這台能跑既有閘門。
 
 ---
 
@@ -243,6 +275,7 @@ D1 → D2 → D3 → D4 → D5
 | 編輯 / AI 產碼 | Cursor | Cursor |
 | 套用完整檔案 | `apply_codegen.ps1` | 同左 |
 | 編譯 | 無法真實編譯 | `build_and_test.ps1`（UBT，不開 VS） |
+| 行為測試（Logic Gate） | 無法真實跑 | 同腳本 + RunTests（階段 F） |
 | IDE 除錯 | 可先裝 Rider | Rider 開 `.uproject` |
 | MSVC 工具鏈 | 可先裝 Build Tools | UBT 使用之 |
 
@@ -258,12 +291,14 @@ D1 → D2 → D3 → D4 → D5
 | B GitHub / 換機 | **完成** |
 | C 無引擎骨架 | **完成**（待 commit/push 同步遠端） |
 | D 引擎 + 本機編譯前置 | **阻塞**（無 Launcher） |
-| E 編譯驗證 | 等待 D |
-| F 可選強化 | 延後 |
+| E 編譯閉環 | 等待 D |
+| F 行為閉環（必要） | 等待 E |
+| G 可選強化 | 延後（不擋 F） |
 
 ---
 
 ## 8. 下一刀建議（單一任務）
 
-1. **立刻：** 把階段 C 變更 **commit / push** 到 GitHub。  
-2. **之後：** 階段 D（裝 UE + Build Tools + 填 `UE_ROOT`）→ E（`build_and_test.ps1`）。
+1. **立刻：** 把階段 C／本文件變更 **commit / push** 到 GitHub。  
+2. **之後：** D → E（編譯閉環）→ **F（行為閉環，必要）** → 再開始以雙閘門 Loop Engineering 開發。  
+3. G（Hook／CI 等）維持可選，不插入 E／F 之間。
