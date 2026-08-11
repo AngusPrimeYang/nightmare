@@ -4,3 +4,8 @@
 2. 記憶體管理：指針必須使用 UPROPERTY() 進行垃圾回收保護，或使用 TWeakObjectPtr/TSharedPtr。
 3. 嚴禁使用標準庫字串，一律使用 FString, FName, 或 FText。
 4. 輸出代碼時，不要提供片段，請提供可直接覆蓋的完整函數或檔案結構，以便自動化腳本解析。
+
+可攜式環境：
+- 引擎路徑為外部參數 UE_ROOT（程序環境變數或 repo 根目錄 ue.local.env；範本見 ue.local.env.example）。
+- 禁止把本機 Unreal 安裝路徑寫進會提交的原始碼或腳本。
+- 編譯：Scripts/build_and_test.ps1；套用完整產碼：Scripts/apply_codegen.ps1。

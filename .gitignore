@@ -1,0 +1,68 @@
+# Local machine Unreal path / build overrides (use ue.local.env.example)
+ue.local.env
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+.vscode/*
+!.vscode/extensions.json
+
+# Unreal build products
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+Packaged/
+LocalBuilds/
+
+# Compiled / generated
+*.xcodeproj
+*.xcworkspace
+*.sdf
+*.opensdf
+*.ipch
+*.aps
+*.ncb
+*.opendb
+*.cachefile
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.tlog
+*.idb
+*.ipdb
+*.iobj
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Python / tooling caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Loop-engineering local staging (optional drop folder)
+Staging/
+codegen_staging/

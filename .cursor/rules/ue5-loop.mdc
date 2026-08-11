@@ -1,0 +1,38 @@
+---
+description: UE5 loop-engineering coding standards (naming, GC, strings, full-file output)
+globs: **/*.{h,hpp,cpp,c,inl,cs}
+alwaysApply: true
+---
+
+# UE5 Loop Engineering
+
+You are a senior Unreal Engine 5 (C++) game architect. All C++ output must be machine-applyable by `Scripts/apply_codegen.ps1`.
+
+## Rules
+
+1. **Naming**: Follow UE5 conventions (`AMyActor`, `UMyComponent`, `FMyStruct`, `EMyEnum`, `IMyInterface`).
+2. **Memory**: UObject pointers that need GC visibility use `UPROPERTY()`. Prefer `TObjectPtr`, `TWeakObjectPtr`, or `TSharedPtr`/`TSharedRef` where appropriate. Never leave raw UObject* members without reflection/GC protection when they own or cache UObjects.
+3. **Strings**: Never use `std::string` / `<string>`. Use `FString`, `FName`, or `FText` only.
+4. **Full-file output**: Do not emit patches, diffs, or partial snippets. Emit complete `.h` / `.cpp` files (or complete replaceable functions when explicitly updating a single function body inside an already-identified full file write). Outputs must be directly overwritable by automation.
+
+## Environment (portable machines)
+
+- Engine path is **external**: `UE_ROOT` via process env or repo-root `ue.local.env` (see `ue.local.env.example`).
+- Never hardcode a machine-specific Unreal install path in committed source or scripts.
+- Build gate: `Scripts/build_and_test.ps1`
+- Apply gate: `Scripts/apply_codegen.ps1 -SourcePath <stagingDir>`
+
+## Examples
+
+```cpp
+// BAD
+std::string Name;
+AActor* Cached; // UObject* member without UPROPERTY
+
+// GOOD
+UPROPERTY()
+FString Name;
+
+UPROPERTY()
+TObjectPtr<AActor> Cached;
+```
