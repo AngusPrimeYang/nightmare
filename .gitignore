@@ -66,3 +66,12 @@ __pycache__/
 # Loop-engineering local staging (optional drop folder)
 Staging/
 codegen_staging/
+
+# Unreal MCP vendor clone (optional; plugin+server are copied out)
+Tools/unreal-mcp/
+
+# Python venv for MCP server
+Tools/unreal-mcp-server/.venv/
+Tools/unreal-mcp-server/**/__pycache__/
+Tools/unreal-mcp-server/*.log
+

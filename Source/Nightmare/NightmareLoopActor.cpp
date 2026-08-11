@@ -9,7 +9,7 @@ ANightmareLoopActor::ANightmareLoopActor()
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	SetRootComponent(SceneRoot);
 
-	LoopLabel = TEXT("NightmareLoopActor");
+	LoopLabel = TEXT("NightmareLoopActor_E5");
 }
 
 void ANightmareLoopActor::BeginPlay()

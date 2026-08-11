@@ -86,6 +86,8 @@ function Resolve-UeEnv {
     $ueTarget = Get-UeEnvValue -FileMap $fileMap -Name 'UE_TARGET' -Default ($ueProject + 'Editor')
     $uePlatform = Get-UeEnvValue -FileMap $fileMap -Name 'UE_PLATFORM' -Default 'Win64'
     $ueConfig = Get-UeEnvValue -FileMap $fileMap -Name 'UE_CONFIG' -Default 'Development'
+    $ueRunTests = Get-UeEnvValue -FileMap $fileMap -Name 'UE_RUN_TESTS' -Default '0'
+    $ueTestFilter = Get-UeEnvValue -FileMap $fileMap -Name 'UE_TEST_FILTER' -Default 'Nightmare.'
     $buildBat = ''
 
     if (-not $SkipEngineValidation) {
@@ -130,14 +132,16 @@ On this machine, either:
     }
 
     return [pscustomobject]@{
-        RepoRoot    = $repoRoot
-        EnvFile     = $envFile
-        UE_ROOT     = $ueRoot
-        UE_PROJECT  = $ueProject
-        UE_TARGET   = $ueTarget
-        UE_PLATFORM = $uePlatform
-        UE_CONFIG   = $ueConfig
-        BuildBat    = $buildBat
-        UProject    = $uproject
+        RepoRoot         = $repoRoot
+        EnvFile          = $envFile
+        UE_ROOT          = $ueRoot
+        UE_PROJECT       = $ueProject
+        UE_TARGET        = $ueTarget
+        UE_PLATFORM      = $uePlatform
+        UE_CONFIG        = $ueConfig
+        UE_RUN_TESTS     = $ueRunTests
+        UE_TEST_FILTER   = $ueTestFilter
+        BuildBat         = $buildBat
+        UProject         = $uproject
     }
 }

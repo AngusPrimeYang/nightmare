@@ -19,5 +19,8 @@ public class Nightmare : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 		});
+
+		// Ensure Source/Nightmare is visible to files under Tests/.
+		PrivateIncludePaths.Add(ModuleDirectory);
 	}
 }

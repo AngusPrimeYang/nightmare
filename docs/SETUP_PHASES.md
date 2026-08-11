@@ -13,9 +13,9 @@
 | A | 倉庫與迴圈工程基建 | 否 | **已完成** |
 | B | GitHub 遠端與換機（clone 後微調） | 否 | **已完成** |
 | C | 無引擎下的專案骨架與產碼演練 | 否 | **已完成** |
-| D | 安裝引擎與本機編譯前置 | **是**（引擎 + MSVC 工具鏈） | 受阻／待做 |
-| E | 編譯閉環（首次編譯與編輯器驗證） | 是 | 待做 |
-| F | 行為閉環（Logic Gate + Spec） | 是 | **Loop Engineering 必要**；接在 E 後，待做 |
+| D | 安裝引擎與本機編譯前置 | **是**（引擎 + MSVC 工具鏈） | **已完成**（本機 2026-08-11） |
+| E | 首次編譯與編輯器驗證（需要 UE） | 是 | **已完成**（本機 2026-08-11） |
+| F | 行為閉環（Logic Gate + Spec） | 是 | **已完成**（本機 2026-08-11） |
 | G | 便利強化（Hook／CI／資產規範等） | 建議已有引擎 | **可選**；刻意延後 |
 
 **閉環分層（勿混淆）：**
@@ -31,8 +31,8 @@
 
 **工作流前提：** 專案以 GitHub 為單一來源；換電腦 = `git clone` + 調整本機 `ue.local.env`（主要是 `UE_ROOT`），不在每台機器重做專案基建。
 
-**目前阻塞點：** 無法透過 Epic Launcher 安裝 UE → 階段 D/E/F 暫停。  
-**建議策略：** A–C 已完成；commit / push 後等待 D → E（編譯閉環）→ **立刻做 F**（行為閉環），再宣稱 Loop Engineering 就緒。
+**目前阻塞點：** 無（D／E／F 就緒；**雙閘門 Loop Engineering 可用**）。  
+**建議策略：** 依 `docs/GAMEPLAY_SLICE.md` 做第一個玩法系統（建議 `Stamina`）+ Spec。
 
 ---
 
@@ -145,7 +145,7 @@ nightmare/
 
 | # | 項目 | 狀態 | 說明 |
 |---|------|------|------|
-| C1 | 新增 `Nightmare.uproject` | `[x]` | `EngineAssociation`: `"5.5"`（與 `ue.local.env.example` 對齊） |
+| C1 | 新增 `Nightmare.uproject` | `[x]` | `EngineAssociation`: `"5.8"`（與本機 `UE_ROOT` / `ue.local.env.example` 對齊） |
 | C2 | 新增 `Source/Nightmare.Target.cs` | `[x]` | Game Target |
 | C3 | 新增 `Source/NightmareEditor.Target.cs` | `[x]` | Editor Target |
 | C4 | 新增 `Source/Nightmare/Nightmare.Build.cs` | `[x]` | Core / CoreUObject / Engine / InputCore |
@@ -167,15 +167,15 @@ nightmare/
 
 | # | 項目 | 狀態 | 說明 |
 |---|------|------|------|
-| D1 | 安裝 Epic Games Launcher | `[ ]` | 目前受阻 |
-| D2 | 安裝目標 UE 版本（與 `.uproject` 的 EngineAssociation 一致） | `[ ]` | |
-| D3 | 本機安裝 **VS 2022 Build Tools**（MSVC + Windows SDK） | `[ ]` | 不必裝完整 Visual Studio IDE；每台要編譯的機器一次 |
-| D4 | clone 後建立 `ue.local.env`，填 `UE_ROOT` | `[ ]` | 指向含 `Engine\Build\BatchFiles\Build.bat` 的根目錄 |
-| D5 | 驗證路徑：`build_and_test.ps1` 能通過 UE_ROOT 檢查 | `[ ]` | 路徑錯會立刻失敗並提示 |
-| D6 | （可選）安裝 Rider | `[ ]` | 除錯用；非 GitHub 流程必需 |
-| D7 | （替代）若不能用以 Launcher：源碼建置引擎或現成引擎包 | `[ ]` | 進階、非預設 |
+| D1 | 安裝 Epic Games Launcher | `[x]` | 本機已有；跳過重裝 |
+| D2 | 安裝目標 UE 版本（與 `.uproject` 的 EngineAssociation 一致） | `[x]` | `UE_ROOT=D:\Epic Games\UE_5.8`；`.uproject` Association=`5.8` |
+| D3 | 本機安裝 **VS 2022 Build Tools**（MSVC + Windows SDK） | `[x]` | 裝於 `D:\DDD\VS2022BuildTools`（VCTools + SDK）；`cl` 19.44 OK |
+| D4 | clone 後建立 `ue.local.env`，填 `UE_ROOT` | `[x]` | 已指向含 `Build.bat` 的引擎根目錄 |
+| D5 | 驗證路徑：`build_and_test.ps1` 能通過 UE_ROOT 檢查 | `[x]` | `Resolve-UeEnv`：UE_ROOT / Build.bat / .uproject 皆 PASS |
+| D6 | （可選）安裝 Rider | `[ ]` | 除錯用；非必要，跳過 |
+| D7 | （替代）若不能用以 Launcher：源碼建置引擎或現成引擎包 | `[ ]` | 不需要（Launcher 引擎已可用） |
 
-**階段 D 完成判準：** 這台機器 `UE_ROOT` 有效且 MSVC 工具鏈可用。
+**階段 D 完成判準：** 這台機器 `UE_ROOT` 有效且 MSVC 工具鏈可用。→ **已達成（2026-08-11）**
 
 ---
 
@@ -183,13 +183,13 @@ nightmare/
 
 | # | 項目 | 狀態 | 說明 |
 |---|------|------|------|
-| E1 | 對 `.uproject` 執行 Generate Project Files（可選，Rider/除錯時有用） | `[ ]` | |
-| E2 | `.\Scripts\build_and_test.ps1` 編譯 `NightmareEditor` | `[ ]` | log 在 `Saved/LoopEngineering/` |
-| E3 | 用 `UnrealEditor.exe` 開啟專案 | `[ ]` | |
-| E4 | 確認階段 C 的範例 Actor 可放進關卡 / 編譯進編輯器 | `[ ]` | |
-| E5 | 固定「產碼 → apply → build」一次成功 | `[ ]` | **編譯閉環**就緒；尚未含行為閘門 |
+| E1 | 對 `.uproject` 執行 Generate Project Files（可選，Rider/除錯時有用） | `[ ]` | 可選；本階段未做（編譯不依賴） |
+| E2 | `.\Scripts\build_and_test.ps1` 編譯 `NightmareEditor` | `[x]` | 首次成功；Target 已升為 V7 / `Unreal5_8` |
+| E3 | 用 `UnrealEditor.exe` 開啟專案 | `[x]` | `UnrealEditor-Cmd` headless 煙霧：Engine init + 載入 `Nightmare` 模組後退出 |
+| E4 | 確認階段 C 的範例 Actor 可放進關卡 / 編譯進編輯器 | `[x]` | `ANightmareLoopActor` 已進 `UnrealEditor-Nightmare.dll`（UHT + link） |
+| E5 | 固定「產碼 → apply → build」一次成功 | `[x]` | staging → `apply_codegen` → rebuild `NightmareLoopActor` 成功 |
 
-**階段 E 完成判準：** Editor 可開、腳本編譯成功、至少一個 C++ Actor 可用。  
+**階段 E 完成判準：** Editor 可開、腳本編譯成功、至少一個 C++ Actor 可用。→ **已達成（2026-08-11）**  
 **注意：** E 完成 ≠ Loop Engineering 行為閉環就緒；下一步必須進階段 F（勿跳過、勿與 G 混為「可選」）。
 
 ---
@@ -201,11 +201,11 @@ nightmare/
 
 | # | 項目 | 狀態 | 說明 |
 |---|------|------|------|
-| F1 | `build_and_test.ps1` 支援 Logic Gate（`UE_RUN_TESTS` / RunTests；可 `-SkipTests` 只編） | `[ ]` | 編譯成功後可跑 `Automation RunTests`；summary 寫入 `Saved/LoopEngineering/` |
-| F2 | 至少一條穩定 smoke Spec（如 `Nightmare.Smoke`）進 repo | `[ ]` | `#if WITH_DEV_AUTOMATION_TESTS`；純邏輯優先，避免 PIE／時序 flaky |
-| F3 | 本機煙霧：編譯後 Logic Gate 對 `UE_TEST_FILTER`（預設 `Nightmare.`）一次綠燈 | `[ ]` | 證明這台機器行為閘門可用 |
+| F1 | `build_and_test.ps1` 支援 Logic Gate（`UE_RUN_TESTS` / RunTests；可 `-SkipTests` 只編） | `[x]` | `-RunTests` / `UE_RUN_TESTS`；`-testexit="Automation Test Queue Empty"`；summary 在 `Saved/LoopEngineering/` |
+| F2 | 至少一條穩定 smoke Spec（如 `Nightmare.Smoke`）進 repo | `[x]` | `Source/Nightmare/Tests/NightmareSmoke.spec.cpp` |
+| F3 | 本機煙霧：編譯後 Logic Gate 對 `UE_TEST_FILTER`（預設 `Nightmare.`）一次綠燈 | `[x]` | Found 1 test；`Result={Success}`（2026-08-11） |
 
-**階段 F 完成判準：** RunTests 可由腳本觸發；至少一條 Spec 綠；**此時才稱 Loop Engineering（雙閘門）就緒**。
+**階段 F 完成判準：** RunTests 可由腳本觸發；至少一條 Spec 綠；**此時才稱 Loop Engineering（雙閘門）就緒**。→ **已達成（2026-08-11）**
 
 ---
 
@@ -290,15 +290,17 @@ D1 → D2 → D3 → D4 → D5
 | A 基建 | **完成** |
 | B GitHub / 換機 | **完成** |
 | C 無引擎骨架 | **完成**（待 commit/push 同步遠端） |
-| D 引擎 + 本機編譯前置 | **阻塞**（無 Launcher） |
-| E 編譯閉環 | 等待 D |
-| F 行為閉環（必要） | 等待 E |
-| G 可選強化 | 延後（不擋 F） |
+| D 引擎 + 本機編譯前置 | **完成**（本機；UE 5.8 + Build Tools） |
+| E 編譯閉環 | **完成** |
+| F 行為閉環（必要） | **完成**（雙閘門就緒） |
+| G 可選強化 | 延後（不擋開工） |
 
 ---
 
 ## 8. 下一刀建議（單一任務）
 
-1. **立刻：** 把階段 C／本文件變更 **commit / push** 到 GitHub。  
-2. **之後：** D → E（編譯閉環）→ **F（行為閉環，必要）** → 再開始以雙閘門 Loop Engineering 開發。  
-3. G（Hook／CI 等）維持可選，不插入 E／F 之間。
+1. **立刻（人工）：** 依 `docs/EDITOR_DEV_SETUP.md` 勾選步驟 2–8（開 Editor、關卡、掛 Component、Pickup、PIE）。  
+2. 步驟 9（Tick／撿物橋接）可用藍圖或再開 Agent 做 C++ DevPawn／GameMode。  
+3. 規則層垂直切片已完成；下一玩法需求另開契約列。  
+4. （可選）把變更 **commit / push** 到 GitHub。  
+5. G（Hook／CI 等）維持可選。

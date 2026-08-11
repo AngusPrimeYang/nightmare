@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.5",
+	"EngineAssociation": "{14EA7CBC-4BBF-4E98-A77F-5892ECD1ED69}",
 	"Category": "",
 	"Description": "Nightmare — UE5 loop-engineering game project",
 	"Modules": [
@@ -8,6 +8,16 @@
 			"Name": "Nightmare",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "UnrealMCP",
+			"Enabled": true
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
 		}
 	]
 }
