@@ -102,7 +102,15 @@ Tools\uv\bin\uv.exe --directory Tools\unreal-mcp-server run --python 3.12 `
 | 編譯 UnrealMCP 失敗 | VS Build Tools（階段 D）；關 Live Coding 後重編 |
 | 與官方 UE 5.8 MCP 衝突 | 可先只用社群版 |
 
-**下一刀：** 玩法 **P1**（刷物＋生成時 roll；C++／Spec）。G1 已用多 `GS_*` 實例組裝——**勿再組巨型單 BP**（易讓 Editor／MCP 當掉）。玩法對錯仍不依賴 MCP。
+**下一刀：** 玩法 **P4+ 敵人**（C++／Spec）。G1 用多 `GS_*` + **`GS_LotPad`**——**勿再組巨型單 BP**；站區高度以地坪為準（見 `GAMEPLAY_SLICE` §7.1.1）。玩法對錯仍不依賴 MCP。
+
+常用腳本（Editor + MCP TCP `55557`）：
+
+| 腳本 | 用途 |
+|------|------|
+| `scripts/actors/nightmare_g1_ground_station.py` | 建／對齊 `GS_LotPad` + 移站體／燈／PlayerStart |
+| `scripts/actors/nightmare_g1_spawn_meshes.py` | 重刷 `GS_*`（`STATION_Z=100`） |
+| `scripts/actors/nightmare_g1_fill_lights.py` | 店內 3×3 燈 |
 
 ---
 

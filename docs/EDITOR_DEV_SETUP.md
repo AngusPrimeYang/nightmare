@@ -14,14 +14,14 @@
 | 1 | 搞懂名詞 | `[~]` | Outliner／Details／Content Browser 已用過 |
 | 2 | 打開 Editor | `[x]` | |
 | 3 | 關卡 | `[x]` | `Content/Map/L_Dev.umap` |
-| 4 | 地板／燈／Player Start | `[~]` | 沿用 L_Dev／Open World；有 PlayerStart |
+| 4 | 地板／燈／Player Start | `[x]` | 權威地面 **`GS_LotPad`**；店內 `StoreCeilLight_*`；PlayerStart 棚前；勿對齊 Landscape 串流 Z |
 | 5 | 建 `BP_DevPawn` 並掛 Component | `[~]` | Character 版 BP 曾重建；**現行玩法改走 C++ `NightmareDevCharacter`**（BP 可留作參考） |
 | 6 | 讓玩家控制該 Pawn | `[x]` | `NightmareDevGameMode` 預設 Pawn；關卡已無搶控制的 `BP_DevPawn_Dev` |
 | 7 | 放置 `NightmarePickupActor` | `[x]` | 關卡已放 `GrayPickup_A/B/C`（旋轉灰盒） |
 | 8 | PIE 煙霧驗證 | `[x]` | 可 WASD／滑鼠；第三人稱臂相機；Dev 螢幕字 HUD |
 | 9 | Tick／撿物橋接 | `[x]` 路徑 B | Tick + E／F／1–3；**P11** Space 跳躍（待編譯驗收） |
 
-**目前焦點：** 物品 P1–P3／P8／P9 已雙閘通過。下一刀 **P4+ 敵人**。
+**目前焦點：** G1 地坪方案已穩。下一刀 **P4+ 敵人**（見 `GAMEPLAY_SLICE` §7.2）。
 
 ---
 
@@ -48,9 +48,9 @@
 
 ---
 
-## 步驟 2–4 — 關卡準備 `[x]`／`[~]`
+## 步驟 2–4 — 關卡準備 `[x]`
 
-見總覽：`L_Dev` 可開、有 PlayerStart；燈光／地板可沿用。
+`L_Dev`；加油站站區以 **`GS_LotPad` + `GS_*` + `StoreCeilLight_*`** 為準（詳 `GAMEPLAY_SLICE` §7.1）。Open World 地景可當遠景，**不可當站區權威高度**。
 
 ---
 
@@ -118,7 +118,7 @@ MCP 可協助步驟 3–7 的「點 Editor」；**不能取代** Spec／雙閘�
 | Stamina / Item / Inventory / Match / Spawn / Pickup 規則 | 步驟 2–9 組裝與煙霧 |
 | `Nightmare.*` Automation 綠燈 | PIE 讓規則「看得見」 |
 | 不在迴圈改 `.uasset` | `.umap`／Blueprint 由人（或 MCP）組 |
-| 玩法延伸 backlog | 見 `GAMEPLAY_SLICE` §7（P10／G1／P1…） |
+| 玩法延伸 backlog | 見 `GAMEPLAY_SLICE` §7（下一刀 **P4+**） |
 
 ---
 
@@ -126,7 +126,8 @@ MCP 可協助步驟 3–7 的「點 Editor」；**不能取代** Spec／雙閘�
 
 | 日期 | 完成至步驟 | 備註 |
 |------|------------|------|
-| 2026-08-12 | 7–9B + P10 + G1 | 選格／加油站（`GS_*`+燈）過；下一刀 **P1** |
+| 2026-08-12 | 9B + P1–P3／P8–P11 + G1 | 物品雙閘過；G1=`GS_*`+`GS_LotPad`；下一刀 **P4** |
+| 2026-08-12 | 7–9B + P10 + G1 | 選格／加油站（`GS_*`+燈）過；下一刀曾為 **P1** |
 | 2026-08-12 | 8 + 9B | PIE 可移動；C++ DevCharacter／GameMode |
 
 ---
@@ -135,7 +136,8 @@ MCP 可協助步驟 3–7 的「點 Editor」；**不能取代** Spec／雙閘�
 
 | 日期 | 說明 |
 |------|------|
-| 2026-08-12 | G1 改多實例還原；焦點 **P1**；勿巨型 BP |
+| 2026-08-12 | G1 權威地坪 `GS_LotPad`（避開 WP 地景預覽／PIE 高度不一致）；焦點 **P4+** |
+| 2026-08-12 | G1 改多實例還原；焦點曾為 **P1**；勿巨型 BP |
 | 2026-08-12 | G1 `GasStationGraybox` @ 原點；焦點曾改 P1 |
 | 2026-08-12 | P10 PIE 過；焦點曾改 G1 加油站灰盒 |
 | 2026-08-12 | PIE 移動通過；步驟 6／8／9B 勾完；曾卡步驟 7 Pickup |

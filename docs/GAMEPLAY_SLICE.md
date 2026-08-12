@@ -113,36 +113,40 @@
 | G2 | `[x]` | **角色灰盒** | `NightmareDevCharacter`：`GrayboxBody` + `GrayboxHead` |
 | G3 | `[x]` | **物品灰盒** | `NightmarePickupActor` 旋轉 Cube；關卡 `GrayPickup_A/B/C` |
 
-#### 7.1.1 G1 加油站灰盒建議結構
+#### 7.1.1 G1 加油站灰盒（現行組裝）
 
-**方案：** 單一 Blueprint（建議名 `BP_GasStationGraybox`，parent `Actor`）+ 多個 `StaticMeshComponent`，全部 mesh 用 `/Engine/BasicShapes/Cube.Cube`，**不設 material**。  
-**放置：** `spawn`／擺關卡於世界座標中心 `(0, 0, 0)`（地面原點；UE 單位 cm）。  
-**原則：** 寧可 30–50 個方塊，也不要少數大盒——窗框、簷口、泵島邊緣、柱帽、門楣都用小 cube 加細節。BasicShapes Cube 邊長約 100 cm；scale 以倍數想（`scale 12` ≈ 12 m 寬）。
+**實際落地（勿改回巨型單 BP）：** 關卡內多個 **`GS_*`**（`BP_GrayCube`，mesh NoCollision）+ **`StoreCeilLight_0..8`**（世界 PointLight 3×3）+ 權威地坪 **`GS_LotPad`**（`BP_GrayPad`，BlockAll）。
+
+| 約定 | 值 |
+|------|-----|
+| 權威地面 | `GS_LotPad` 頂面（勿用 Landscape／World Partition 串流高度當站區 Z） |
+| `STATION_Z` | **100**（地坪頂；零件世界 Z = 相對 Z + 100） |
+| PlayerStart | 棚前約 `(0, -600, 220)`；出生另由 `NightmareDevGameMode` 線跡找地 |
+| 還原／對齊 | `Tools/unreal-mcp-server/scripts/actors/nightmare_g1_ground_station.py`（含建 pad、移 `GS_*`／燈／PlayerStart） |
+| 僅刷 mesh | `nightmare_g1_spawn_meshes.py`（`STATION_Z=100`） |
+| 禁忌 | 巨型 `BP_GasStationGraybox`（易炸 Editor／MCP）；為防陷地去抬整座站或改對齊 Landscape actor Z |
+
+**相對座標（設計地面 = 0；世界加 `STATION_Z`）仍可用下表當零件表：**
 
 | 元件名 | 角色 | Relative Location（約） | Relative Scale（約） |
 |--------|------|----------------------|----------------------|
+| `LotPad`（`GS_LotPad`） | 有碰撞大地坪 | 中心約 `(0, -100, STATION_Z-25)`，scale `(36, 32, 0.5)` | 頂面 = `STATION_Z` |
 | `StoreFloor` | 店面地板 | `(0, 400, 5)` | `(12, 10, 0.1)` |
 | `StoreWall_N/S/E/W` | 四面牆 | 依地板邊緣 | 厚 `0.2`、高 `~3` |
 | `StoreRoof` | 店屋頂 | `(0, 400, 320)` | `(12.5, 10.5, 0.15)` |
-| `StoreDoorGap` | 門洞 | 正面中央開縫（左右牆缺口即可） | — |
-| `StoreWindow_L/R` | 窗框細節（扁盒） | 正面牆 | 薄片 |
+| `StoreWindow_L/R` | 窗框細節 | 正面牆 | 薄片 |
 | `CanopyDeck` | 加油棚頂 | `(0, -200, 450)` | `(20, 16, 0.2)` |
 | `CanopyEdge_*` | 棚邊飾條 | 棚四邊 | 細長扁盒 |
 | `CanopyPost_FL/FR/BL/BR` | 四根柱 | 棚四角 | `(0.4, 0.4, 4.5)` |
-| `PumpIsland_1/2` | 泵島基座 | `(-300/0, -200, 15)` | `(3, 1.5, 0.3)` |
-| `PumpBody_*` | 油機本體 | 島上 | `(0.8, 0.6, 1.8)` |
-| `PumpHose_*` | 皮管暗示 | 側邊 | 細長扁盒 |
-| `SignPole` | 招牌柱 | `(-900, -200, 300)` | `(0.5, 0.5, 6)` |
-| `SignBoard` | 高架招牌 | 柱頂 | `(4, 0.3, 2)` |
-| `PriceBoard` | 價目小牌 | 招牌下方 | 扁盒 |
-| `Curb_*` | 路緣／停車線 | 棚下地面 | 扁長盒 |
-| `Trash_*` / `IceBox` | 店前小物 | 店門旁 | 小方塊堆 |
+| `PumpIsland_1/2` | 泵島基座 | `(-300/200, -200, 15)` | `(3, 1.5, 0.3)` |
+| `PumpBody_*`／`PumpHead_*` | 油機 | 島上 | 見腳本 `PARTS` |
+| `SignPole`／`SignBoard`／`PriceBoard` | 高架招牌 | `(-900, -200, …)` | 見腳本 |
+| `Curb_*`／`Trash_*`／`IceBox` | 路緣／小物 | 棚下／店門旁 | 小方塊 |
 
-**組裝順序（MCP／人工皆可）：**  
-`create_blueprint` → 對每列 `add_component` + `set_static_mesh`（Cube，不傳 material）→ 調 location／scale／rotation → `compile` → spawn 於 `[0,0,0]`。
+**高度踩坑（已踩過）：** Editor 常全載入地景（表面≈100），PIE World Partition 串流後當地表面變低／缺塊 → 同一 `GS_*` Z 會「預覽埋土、▶懸空」。**只調 `STATION_Z` 無法兩頭兼顧**；必須有 `GS_LotPad`（或同等有碰撞地坪）當權威地面。
 
-**預期：** 遠看為便利商店盒體 + 前方大雨棚 + 雙泵島 + 高架招牌；近看仍是灰立方體積木。  
-**後續（2026-08-12）：** 室內 **3×3** PointLight；灰盒 NoCollision；**`GS_LotPad` 有碰撞地坪** 為權威地面（避開 World Partition 地景「預覽埋土／PIE 懸空」）；站體 `STATION_Z=100`。
+**預期：** 遠看便利店 + 雨棚 + 雙泵島 + 招牌，脚下灰色大地坪；近看仍是灰立方體積木。  
+MCP 改完關卡後 **務必 Ctrl+S**。
 
 ### 7.2 玩法延伸
 
