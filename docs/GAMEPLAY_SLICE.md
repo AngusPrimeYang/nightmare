@@ -1,6 +1,6 @@
 # Nightmare — 玩法契約（第一垂直切片）
 
-> 更新日期：2026-08-12  
+> 更新日期：2026-08-13  
 > 用途：追蹤「做了什麼／做到哪」；行為對錯以 Automation Spec（`Nightmare.*`）為準，本頁只記規則與進度。  
 > 不綁鏡頭／類型（第一人稱、第三人稱、橫版等之後再掛呈現層）。
 
@@ -63,6 +63,9 @@
 | 勝負 | `Nightmare.Match` | `[x]` | `UNightmareMatchComponent`（Failed 優先） |
 | 刷物排程 | `Nightmare.Spawn` | `[x]` | `UNightmareSpawnScheduler` |
 | 互動 Actor（C++） | `Nightmare.Pickup` | `[x]` | `ANightmarePickupActor::TryCollectInto`；**關卡／網格仍為人工作業** |
+| 敵人邊緣生成 | `Nightmare.EnemySpawn` | `[x]` | `UNightmareEdgeSpawnLocator` + `ANightmareEnemySpawner` |
+| 敵人數值／移動 | `Nightmare.EnemyRoll` | `[x]` | `UNightmareEnemyRoller` + Chase/Wander |
+| 敵人碰觸攻擊 | `Nightmare.EnemyAttack` | `[x]` | P6 扣 `AttackPower`＋Despawn；P7 共用 `ApplyHitKnockback` |
 
 **完成定義：** 上表 Spec 綠 + 本頁勾選。Dev Map / Pawn 視覺組裝見 §4，不算本表阻塞。
 
@@ -73,7 +76,7 @@
 1. 階段 **F**：**完成**  
 2. 規則層 `Stamina` → `Item` → `Inventory` → `Match` → `Spawn` → `Pickup`：**完成**  
 3. **Editor 組裝：** 見 **`docs/EDITOR_DEV_SETUP.md`** — 步驟 6–9B + Pickup 煙霧已過（移動／E 撿／F 用／Dev HUD）  
-4. **物品玩法 P1–P3／P8／P9 已落地（待編譯＋Spec 閘）** → 下一刀可做 **P4+ 敵人**  
+4. **物品 P1–P3／P8–P11 + 敵人 P4–P7 已落地** → 下一刀可做呈現／鏡頭，或回頭調數值  
 5. 其後鏡頭／美術換皮  
 
 ---
@@ -155,11 +158,12 @@ MCP 改完關卡後 **務必 Ctrl+S**。
 | P1 | `[x]` | **刷物呈現＋生成時 roll** | `ANightmareItemSpawner` + `UNightmareItemRoller`；生成當下 roll 效果／互動；懸浮刷出。`Nightmare.ItemRoll` Spec。 |
 | P2 | `[x]` | **物品兩種互動** | TouchInstant vs HoldToUse 互斥；每物單一 EffectType（Stamina／Speed／Jump）。 |
 | P3 | `[x]` | **碰觸傷害反饋** | Touch + 負體力 → `ApplyHitKnockback`（後跳）。 |
-| P4 | `[ ]` | **敵人：世界邊緣隨機生成** | 隨時間在世界邊緣隨機刷出敵人；間隔／邊緣範圍參數化；需 Spec（可注入時間／假隨機）。 |
-| P5 | `[ ]` | **敵人：移動速度／攻擊力參數化＋生成時 roll** | `MoveSpeed`、`AttackPower`（及合理 Min/Max）可調；**生成當下**隨機賦予該個體。移動行為：多半朝玩家、部分時間隨機移動（見先前討論）。 |
-| P6 | `[ ]` | **敵人：碰觸消耗體力後消失** | 碰到玩家時消耗等同該敵人 `AttackPower` 的體力，之後敵人消失（despawn）。需 Spec 鎖扣量與消失。 |
-| P7 | `[ ]` | **敵人攻擊傷害反饋** | 玩家被敵人攻擊（P6）後，同樣有傷害反饋（與 P3 對齊：向後跳躍等呈現／移動反饋）；可共用同一反饋入口，避免兩套邏輯。 |
+| P4 | `[x]` | **敵人：世界邊緣隨機生成** | `UNightmareEdgeSpawnLocator`（矩形外緣帶＋seed／stream）+ `ANightmareEnemySpawner`（重用 `UNightmareSpawnScheduler`）+ 灰盒 `ANightmareEnemyActor`；`NightmareDevGameMode` 自動掛 spawner。Spec：`Nightmare.EnemySpawn`（5 綠，2026-08-13）。 |
+| P5 | `[x]` | **敵人：移動速度／攻擊力參數化＋生成時 roll** | `FNightmareEnemyStats` + `UNightmareEnemyRoller`（Speed 200–450、Power 5–20、ChaseChance 0.7）；生成時賦予個體；Chase／Wander retarget。Spec：`Nightmare.EnemyRoll`（7 綠，2026-08-13）。 |
+| P6 | `[x]` | **敵人：碰觸消耗體力後消失** | `TryAttackPlayer`：`ApplyDelta(-AttackPower)` → Despawn；overlap 走同一入口。Spec：`Nightmare.EnemyAttack`（2026-08-13）。 |
+| P7 | `[x]` | **敵人攻擊傷害反饋** | 與 P3 共用 `NightmareItemEffectApply::ApplyHitKnockback`（600/400）；無第二套 knockback。 |
 | P8 | `[x]` | **物品：短暫加速／減速** | `UNightmarePlayerEffectComponent` Speed；Touch 或 Hold 使用。 |
 | P9 | `[x]` | **物品：短暫改變跳躍高度** | Effect Jump／Gravity；Touch 或 Hold 使用。 |
 | P10 | `[x]` | **背包選格使用（一次一格）** | 2026-08-12 PIE 驗過：`1`/`2`/`3` 選格 + `F` 用當前格；HUD `>n<`；一次一次 `TryUseSlot(Selected)`。 |
 | P11 | `[x]` | **玩家跳躍（Space）** | 2026-08-12 PIE 驗過：`Space` → Jump；出生點抬高後可測。 |
+| P12 | `[ ]` | **敵人：浮空／步行兩種類型** | PIE 現況敵人一律浮空。改為生成時 roll（或參數）選 **Hover**（浮空移動）或 **Walk**（貼地／沿地面移動）；需 Spec 鎖類型行為差異。 |

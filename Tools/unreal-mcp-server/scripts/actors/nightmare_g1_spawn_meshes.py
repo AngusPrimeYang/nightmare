@@ -82,7 +82,11 @@ def main():
     })
     send("set_component_property", {
         "blueprint_name": CUBE_BP, "component_name": "CubeMesh",
-        "property_name": "CollisionEnabled", "property_value": "NoCollision",
+        "property_name": "CollisionEnabled", "property_value": "QueryAndPhysics",
+    })
+    send("set_component_property", {
+        "blueprint_name": CUBE_BP, "component_name": "CubeMesh",
+        "property_name": "CollisionProfileName", "property_value": "BlockAll",
     })
     r = send("compile_blueprint", {"blueprint_name": CUBE_BP})
     print("compile", r.get("status"))

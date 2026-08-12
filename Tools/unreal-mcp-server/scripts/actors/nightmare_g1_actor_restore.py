@@ -149,7 +149,7 @@ def ensure_cube_bp():
             "blueprint_name": CUBE_BP,
             "component_name": "CubeMesh",
             "property_name": "BodyInstance.CollisionEnabled",
-            "property_value": "NoCollision",
+            "property_value": "QueryAndPhysics",
         },
     )
     send(
@@ -158,7 +158,16 @@ def ensure_cube_bp():
             "blueprint_name": CUBE_BP,
             "component_name": "CubeMesh",
             "property_name": "CollisionEnabled",
-            "property_value": "NoCollision",
+            "property_value": "QueryAndPhysics",
+        },
+    )
+    send(
+        "set_component_property",
+        {
+            "blueprint_name": CUBE_BP,
+            "component_name": "CubeMesh",
+            "property_name": "CollisionProfileName",
+            "property_value": "BlockAll",
         },
     )
     return soft("compile_cube_bp", send("compile_blueprint", {"blueprint_name": CUBE_BP}))

@@ -15,11 +15,14 @@
 #include "InputMappingContext.h"
 #include "InputModifiers.h"
 #include "Kismet/GameplayStatics.h"
+#include "NightmareDevGameMode.h"
+#include "NightmareEnemySpawner.h"
 #include "NightmareInventoryComponent.h"
 #include "NightmareItemInstance.h"
 #include "NightmareMatchComponent.h"
 #include "NightmarePickupActor.h"
 #include "NightmarePlayerEffectComponent.h"
+#include "NightmareSpawnScheduler.h"
 #include "NightmareStaminaComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -38,6 +41,9 @@ ANightmareDevCharacter::ANightmareDevCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 700.0f;
 	GetCharacterMovement()->AirControl = 0.35f;
+
+	// Needed so enemy TouchSphere BeginOverlap fires in PIE.
+	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -290,11 +296,26 @@ void ANightmareDevCharacter::DrawDevStatusHud() const
 		}
 	}
 	GEngine->AddOnScreenDebugMessage(102, 0.0f, FColor::Yellow, MatchLine);
+
+	FString EnemyLine = TEXT("Enemies: (no spawner)");
+	if (const ANightmareDevGameMode* DevGM = Cast<ANightmareDevGameMode>(GetWorld() ? GetWorld()->GetAuthGameMode() : nullptr))
+	{
+		if (const ANightmareEnemySpawner* Spawner = DevGM->GetEnemySpawner())
+		{
+			const float NextIn = Spawner->GetScheduler() ? Spawner->GetScheduler()->GetTimeUntilNextSpawn() : -1.0f;
+			EnemyLine = FString::Printf(
+				TEXT("Enemies: alive=%d  next=%.1fs  (walk to pad edge / chase)"),
+				Spawner->GetAliveEnemyCount(),
+				NextIn);
+		}
+	}
+	GEngine->AddOnScreenDebugMessage(105, 0.0f, FColor::Orange, EnemyLine);
+
 	GEngine->AddOnScreenDebugMessage(
 		103,
 		0.0f,
 		FColor::White,
-		TEXT("WASD Move  Space Jump  E Collect(Hold)  Touch=instant  1/2/3 Select  F Use"));
+		TEXT("WASD Move  Space Jump  E Collect(Hold)  Touch=instant  1/2/3 Select  F Use  |  Touch enemy=hit"));
 }
 
 void ANightmareDevCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

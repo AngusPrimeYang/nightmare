@@ -2,17 +2,20 @@
 
 #include "NightmareDevGameMode.h"
 
+#include "Components/SceneComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "NightmareDevCharacter.h"
+#include "NightmareEnemySpawner.h"
 #include "NightmareItemSpawner.h"
 
 ANightmareDevGameMode::ANightmareDevGameMode()
 {
 	DefaultPawnClass = ANightmareDevCharacter::StaticClass();
 	ItemSpawnerLocation = FVector(0.0f, -600.0f, 150.0f);
+	EnemySpawnerLocation = FVector(0.0f, -100.0f, 100.0f);
 	SafeSpawnLocation = FVector(0.0f, -600.0f, 220.0f);
 	bForceSafeSpawnLocation = true;
 	SpawnTraceHeight = 8000.0f;
@@ -43,7 +46,12 @@ void ANightmareDevGameMode::ApplySafeSpawnTransforms()
 			Loc.X = SafeSpawnLocation.X;
 			Loc.Y = SafeSpawnLocation.Y;
 			Loc.Z = SafeSpawnLocation.Z;
-			Start->SetActorLocation(Loc);
+			// PlayerStart capsules are often Static; moving them without Movable spams PIE warnings.
+			if (USceneComponent* Root = Start->GetRootComponent())
+			{
+				Root->SetMobility(EComponentMobility::Movable);
+			}
+			Start->SetActorLocation(Loc, false, nullptr, ETeleportType::TeleportPhysics);
 			Start->SetActorRotation(FRotator(0.0f, 90.0f, 0.0f));
 		}
 	}
@@ -98,6 +106,11 @@ void ANightmareDevGameMode::BeginPlay()
 	ItemSpawner = World->SpawnActor<ANightmareItemSpawner>(
 		ANightmareItemSpawner::StaticClass(),
 		ItemSpawnerLocation,
+		FRotator::ZeroRotator,
+		Params);
+	EnemySpawner = World->SpawnActor<ANightmareEnemySpawner>(
+		ANightmareEnemySpawner::StaticClass(),
+		EnemySpawnerLocation,
 		FRotator::ZeroRotator,
 		Params);
 }

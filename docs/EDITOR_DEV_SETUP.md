@@ -19,9 +19,10 @@
 | 6 | 讓玩家控制該 Pawn | `[x]` | `NightmareDevGameMode` 預設 Pawn；關卡已無搶控制的 `BP_DevPawn_Dev` |
 | 7 | 放置 `NightmarePickupActor` | `[x]` | 關卡已放 `GrayPickup_A/B/C`（旋轉灰盒） |
 | 8 | PIE 煙霧驗證 | `[x]` | 可 WASD／滑鼠；第三人稱臂相機；Dev 螢幕字 HUD |
-| 9 | Tick／撿物橋接 | `[x]` 路徑 B | Tick + E／F／1–3；**P11** Space 跳躍（待編譯驗收） |
+| 9 | Tick／撿物橋接 | `[x]` 路徑 B | Tick + E／F／1–3；**P11** Space 跳躍 |
+| 10 | 敵人 PIE（P4–P7） | `[ ]` | 開局邊緣刷怪 → 追趕／碰觸扣體力＋後跳＋消失 |
 
-**目前焦點：** G1 地坪方案已穩。下一刀 **P4+ 敵人**（見 `GAMEPLAY_SLICE` §7.2）。
+**目前焦點：** 敵人 P4–P7 C++／Spec 已過；**PIE 敵人驗收**見下方步驟 10。
 
 ---
 
@@ -111,6 +112,37 @@ MCP 可協助步驟 3–7 的「點 Editor」；**不能取代** Spec／雙閘�
 
 ---
 
+## 步驟 10 — 敵人 PIE 驗收（P4–P7） `[ ]`
+
+> 需用**本機已編譯**的 Editor binary（Live Coding 衝突時先關 Editor 再 `build_and_test`）。
+
+### 開局預期
+
+| 檢查 | 預期 |
+|------|------|
+| HUD `Enemies: alive=N` | 開局約 **2**（`InitialSpawnCount`）；之後每 3–5s 可能再刷 |
+| 視野 | 站區邊緣有**高瘦灰立方**敵人；會 Chase／Wander |
+| 操作提示 | 底列含 `Touch enemy=hit` |
+
+### 碰觸預期（P6／P7）
+
+1. 走近邊緣敵人（或等它追上來）  
+2. **碰到** → 紅字 toast `Enemy hit! stamina -X`  
+3. 體力數字下降；角色**後跳**（同 P3 knockback）  
+4. 該敵人消失；HUD `alive` 減 1  
+
+### 勾選
+
+| # | 項目 | 狀態 |
+|---|------|------|
+| 10.1 | 開局看到 `alive≥1`／邊緣灰盒敵人 | `[ ]` |
+| 10.2 | 敵人會移動（追／遊走） | `[ ]` |
+| 10.3 | 碰觸扣體力＋toast＋後跳＋despawn | `[ ]` |
+
+通過後把上表改 `[x]`，並在下方「勾選紀錄」記一筆。
+
+---
+
 ## 與 Loop Engineering 的分工
 
 | 已完成（C++／Spec／閘門） | 本文件追蹤（Editor／橋接） |
@@ -118,7 +150,7 @@ MCP 可協助步驟 3–7 的「點 Editor」；**不能取代** Spec／雙閘�
 | Stamina / Item / Inventory / Match / Spawn / Pickup 規則 | 步驟 2–9 組裝與煙霧 |
 | `Nightmare.*` Automation 綠燈 | PIE 讓規則「看得見」 |
 | 不在迴圈改 `.uasset` | `.umap`／Blueprint 由人（或 MCP）組 |
-| 玩法延伸 backlog | 見 `GAMEPLAY_SLICE` §7（下一刀 **P4+**） |
+| 玩法延伸 backlog | 見 `GAMEPLAY_SLICE` §7（敵人 P4–P7 已勾；待 PIE 步驟 10） |
 
 ---
 

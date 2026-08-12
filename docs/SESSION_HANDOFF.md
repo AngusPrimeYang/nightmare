@@ -1,24 +1,21 @@
-# Nightmare — 新 Session 精簡交接（2026-08-12）
+# Nightmare — 新 Session 精簡交接（2026-08-13）
 
 > 開新 chat 時把本檔貼給 Agent，或說「依 docs/SESSION_HANDOFF.md 繼續」。
 
 ## 現況（一句）
 
-物品 P1–P3／P8–P11 與 G1 加油站灰盒已可用；站區踩 **`GS_LotPad`**（勿再跟 Open World 地景 Z 對賭）。下一刀：**P4+ 敵人**。
+敵人 P4–P7 可玩；PIE 手感已調過。下一刀 backlog：**P12 敵人浮空／步行兩種類型**（見 `GAMEPLAY_SLICE` §7.2）。
 
-## 站區高度（已拍板）
+## PIE 備註
 
-| 項目 | 約定 |
-|------|------|
-| 權威地面 | `GS_LotPad`（`BP_GrayPad`，BlockAll） |
-| 站體世界 Z | `STATION_Z=100`（地坪頂；`GS_*` 相對座標 + 100） |
-| 燈 | `StoreCeilLight_0..8` @ `STATION_Z+290` |
-| 還原腳本 | `Tools/unreal-mcp-server/scripts/actors/nightmare_g1_ground_station.py` |
-| 禁區 | 不要為了出生／防陷去抬整座站或改對齊 Landscape actor Z |
+- 敵人目前一律浮空（為避卡地／sweep）；P12 要拆成 Hover vs Walk
+- 牆要擋：`BP_GrayCube` → CubeMesh → **BlockAll** → Compile → Ctrl+S
 
-症狀回憶：編輯器全載入地景 vs PIE 串流高度不同 →「預覽埋土、▶懸空」。地坪有碰撞後兩邊一致。
+## 站區高度
+
+權威地面 `GS_LotPad`；`STATION_Z=100`；勿對齊 Landscape Z。
 
 ## 請你（下一 Session）
 
-1. 依 `docs/GAMEPLAY_SLICE.md` §7.2 做 **P4**（敵人世界邊緣隨機生成）+ Spec
-2. 關 Editor 後若尚未編譯：`NightmareDevGameMode` 的 ItemSpawner／SafeSpawn Z 已對地坪上方
+1. 依 `GAMEPLAY_SLICE` **P12**：浮空／步行兩種類型＋生成時 roll＋Spec
+2. 或先勾完 `EDITOR_DEV_SETUP` 步驟 10 PIE 驗收

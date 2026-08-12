@@ -7,10 +7,11 @@
 #include "NightmareDevGameMode.generated.h"
 
 class ANightmareItemSpawner;
+class ANightmareEnemySpawner;
 class AController;
 class APawn;
 
-/** Dev smoke GameMode: default pawn is ANightmareDevCharacter; spawns item spawner. */
+/** Dev smoke GameMode: default pawn is ANightmareDevCharacter; spawns item + enemy spawners. */
 UCLASS(Blueprintable)
 class NIGHTMARE_API ANightmareDevGameMode : public AGameModeBase
 {
@@ -22,6 +23,12 @@ public:
 	virtual void BeginPlay() override;
 	virtual void RestartPlayer(AController* NewPlayer) override;
 
+	UFUNCTION(BlueprintPure, Category = "Nightmare|EnemySpawn")
+	ANightmareEnemySpawner* GetEnemySpawner() const { return EnemySpawner; }
+
+	UFUNCTION(BlueprintPure, Category = "Nightmare|Spawn")
+	ANightmareItemSpawner* GetItemSpawner() const { return ItemSpawner; }
+
 protected:
 	/** Repositions PlayerStart actors and pawns so Open World landscape cannot bury spawn. */
 	void ApplySafeSpawnTransforms();
@@ -30,6 +37,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nightmare|Spawn")
 	FVector ItemSpawnerLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nightmare|EnemySpawn")
+	FVector EnemySpawnerLocation;
 
 	/** Preferred XY + minimum Z for PlayerStart / pawn (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nightmare|Spawn")
@@ -49,4 +59,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nightmare|Spawn")
 	TObjectPtr<ANightmareItemSpawner> ItemSpawner;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nightmare|EnemySpawn")
+	TObjectPtr<ANightmareEnemySpawner> EnemySpawner;
 };
