@@ -11,8 +11,8 @@
 #include "Misc/ScopeLock.h"
 #include "HAL/PlatformTime.h"
 
-// Buffer size for receiving data
-const int32 BufferSize = 8192;
+// Buffer size for receiving data (avoid name clash with UE StringConv BufferSize)
+static const int32 GMCPSocketBufferSize = 8192;
 
 FMCPServerRunnable::FMCPServerRunnable(UUnrealMCPBridge* InBridge, TSharedPtr<FSocket> InListenerSocket)
     : Bridge(InBridge)
@@ -52,15 +52,25 @@ uint32 FMCPServerRunnable::Run()
                 
                 // Set socket options to improve connection stability
                 ClientSocket->SetNoDelay(true);
+                // Match Python client: one command per TCP connection (reconnect each call).
+                // Blocking recv avoids CLOSE_WAIT spin on EWOULDBLOCK after peer FIN.
+                ClientSocket->SetNonBlocking(false);
                 int32 SocketBufferSize = 65536;  // 64KB buffer
                 ClientSocket->SetSendBufferSize(SocketBufferSize, SocketBufferSize);
                 ClientSocket->SetReceiveBufferSize(SocketBufferSize, SocketBufferSize);
                 
                 uint8 Buffer[8192];
-                while (bRunning)
+                while (bRunning && ClientSocket.IsValid())
                 {
+                    // Peer already gone — do not spin forever in CLOSE_WAIT.
+                    if (ClientSocket->GetConnectionState() != SCS_Connected)
+                    {
+                        UE_LOG(LogTemp, Display, TEXT("MCPServerRunnable: Client socket no longer connected"));
+                        break;
+                    }
+
                     int32 BytesRead = 0;
-                    if (ClientSocket->Recv(Buffer, sizeof(Buffer), BytesRead))
+                    if (ClientSocket->Recv(Buffer, sizeof(Buffer) - 1, BytesRead))
                     {
                         if (BytesRead == 0)
                         {
@@ -98,6 +108,9 @@ uint32 FMCPServerRunnable::Run()
                                 else {
                                     UE_LOG(LogTemp, Display, TEXT("MCPServerRunnable: Response sent successfully, bytes: %d"), BytesSent);
                                 }
+
+                                // One-shot: close after reply so next Accept is not blocked by a half-closed socket.
+                                break;
                             }
                             else
                             {
@@ -112,33 +125,15 @@ uint32 FMCPServerRunnable::Run()
                     else
                     {
                         int32 LastError = (int32)ISocketSubsystem::Get()->GetLastErrorCode();
-                        // Don't break the connection for WouldBlock error, which is normal for non-blocking sockets
-                        bool bShouldBreak = true;
-                        
-                        // Check for "would block" error which isn't a real error for non-blocking sockets
-                        if (LastError == SE_EWOULDBLOCK) 
-                        {
-                            UE_LOG(LogTemp, Verbose, TEXT("MCPServerRunnable: Socket would block, continuing..."));
-                            bShouldBreak = false;
-                            // Small sleep to prevent tight loop when no data
-                            FPlatformProcess::Sleep(0.01f);
-                        }
-                        // Check for other transient errors we might want to tolerate
-                        else if (LastError == SE_EINTR) // Interrupted system call
-                        {
-                            UE_LOG(LogTemp, Warning, TEXT("MCPServerRunnable: Socket read interrupted, continuing..."));
-                            bShouldBreak = false;
-                        }
-                        else 
-                        {
-                            UE_LOG(LogTemp, Warning, TEXT("MCPServerRunnable: Client disconnected or error. Last error code: %d"), LastError);
-                        }
-                        
-                        if (bShouldBreak)
-                        {
-                            break;
-                        }
+                        UE_LOG(LogTemp, Warning, TEXT("MCPServerRunnable: Client disconnected or error. Last error code: %d"), LastError);
+                        break;
                     }
+                }
+
+                if (ClientSocket.IsValid())
+                {
+                    ClientSocket->Close();
+                    ClientSocket.Reset();
                 }
             }
             else

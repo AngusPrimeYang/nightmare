@@ -9,10 +9,10 @@
 
 class UNightmareInventoryComponent;
 class USceneComponent;
+class UStaticMeshComponent;
 
 /**
- * Placeable world pickup (C++ shell). Collection rules are Spec-tested via TryCollectInto.
- * Humans wire meshes / levels in Editor — this loop does not edit .uasset maps.
+ * Placeable world pickup with graybox cube (G3). Collection via TryCollectInto.
  */
 UCLASS(Blueprintable)
 class NIGHTMARE_API ANightmarePickupActor : public AActor
@@ -21,6 +21,8 @@ class NIGHTMARE_API ANightmarePickupActor : public AActor
 
 public:
 	ANightmarePickupActor();
+
+	virtual void Tick(float DeltaSeconds) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Nightmare|Pickup")
 	bool TryCollectInto(UNightmareInventoryComponent* Inventory);
@@ -38,9 +40,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneRoot;
 
+	/** G3 graybox — engine cube, no custom material. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> GrayboxMesh;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nightmare|Pickup")
 	FNightmareItemDef ItemDef;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nightmare|Pickup")
 	bool bCollected;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nightmare|Graybox", meta = (ClampMin = "0.0"))
+	float YawRotateSpeedDegrees;
 };

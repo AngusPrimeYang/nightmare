@@ -299,8 +299,10 @@ D1 → D2 → D3 → D4 → D5
 
 ## 8. 下一刀建議（單一任務）
 
-1. **立刻（人工）：** 依 `docs/EDITOR_DEV_SETUP.md` 勾選步驟 2–8（開 Editor、關卡、掛 Component、Pickup、PIE）。  
-2. 步驟 9（Tick／撿物橋接）可用藍圖或再開 Agent 做 C++ DevPawn／GameMode。  
-3. 規則層垂直切片已完成；下一玩法需求另開契約列。  
-4. （可選）把變更 **commit / push** 到 GitHub。  
-5. G（Hook／CI 等）維持可選。
+> Editor 步驟 1–9 煙霧已過（見 `docs/EDITOR_DEV_SETUP.md`）。規則層垂直切片 + 階段 F 雙閘門已完成。
+
+1. **下一刀：P1** — 刷物呈現＋生成時 roll（C++／Spec；`GAMEPLAY_SLICE` §7.2）。  
+2. 已齊：規則層、Editor 煙霧、P10、P11、G1–G3；**滿格拒撿**契約已明文（Spec 早已鎖）。  
+3. （可選）關 Editor 編譯以帶上 Dev「Inventory full」toast。  
+4. （可選）**commit / push**。  
+5. G（Hook／CI）維持可選。

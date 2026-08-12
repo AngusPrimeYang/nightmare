@@ -203,7 +203,36 @@ TSharedPtr<FJsonObject> FUnrealMCPEditorCommands::HandleSpawnActor(const TShared
     }
     else
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown actor type: %s"), *ActorType));
+        // Generic: resolve /Script/<Module>.<Class> (with/without A prefix)
+        FString TypeName = ActorType;
+        FString ShortName = TypeName;
+        if (ShortName.StartsWith(TEXT("A")) && ShortName.Len() > 1)
+        {
+            ShortName.RightChopInline(1);
+        }
+
+        UClass* ActorClass = LoadClass<AActor>(nullptr, *FString::Printf(TEXT("/Script/Nightmare.%s"), *ShortName));
+        if (!ActorClass)
+        {
+            ActorClass = LoadClass<AActor>(nullptr, *FString::Printf(TEXT("/Script/Engine.%s"), *ShortName));
+        }
+        if (!ActorClass)
+        {
+            ActorClass = FindFirstObject<UClass>(*ShortName, EFindFirstObjectOptions::None);
+        }
+        if (!ActorClass)
+        {
+            ActorClass = FindFirstObject<UClass>(*TypeName, EFindFirstObjectOptions::None);
+        }
+
+        if (ActorClass && ActorClass->IsChildOf(AActor::StaticClass()))
+        {
+            NewActor = World->SpawnActor<AActor>(ActorClass, Location, Rotation, SpawnParams);
+        }
+        else
+        {
+            return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown actor type: %s"), *ActorType));
+        }
     }
 
     if (NewActor)
@@ -584,10 +613,13 @@ TSharedPtr<FJsonObject> FUnrealMCPEditorCommands::HandleTakeScreenshot(const TSh
         
         if (Viewport->ReadPixels(Bitmap, FReadSurfaceDataFlags(), ViewportRect))
         {
-            TArray<uint8> CompressedBitmap;
-            FImageUtils::CompressImageArray(Viewport->GetSizeXY().X, Viewport->GetSizeXY().Y, Bitmap, CompressedBitmap);
+            TArray64<uint8> CompressedBitmap;
+            FImageUtils::PNGCompressImageArray(Viewport->GetSizeXY().X, Viewport->GetSizeXY().Y, Bitmap, CompressedBitmap);
+
+            TArray<uint8> CompressedBitmapForSave;
+            CompressedBitmapForSave.Append(CompressedBitmap.GetData(), static_cast<int32>(CompressedBitmap.Num()));
             
-            if (FFileHelper::SaveArrayToFile(CompressedBitmap, *FilePath))
+            if (FFileHelper::SaveArrayToFile(CompressedBitmapForSave, *FilePath))
             {
                 TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
                 ResultObj->SetStringField(TEXT("filepath"), FilePath);

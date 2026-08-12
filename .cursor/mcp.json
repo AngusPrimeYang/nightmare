@@ -1,13 +1,18 @@
 {
   "mcpServers": {
     "unrealMCP": {
-      "command": "uv",
+      "type": "stdio",
+      "command": "${workspaceFolder}/Tools/uv/bin/uv.exe",
       "args": [
         "--directory",
-        "Tools/unreal-mcp-server",
+        "${workspaceFolder}/Tools/unreal-mcp-server",
         "run",
         "unreal_mcp_server.py"
-      ]
+      ],
+      "env": {
+        "UV_CACHE_DIR": "${workspaceFolder}/Tools/uv/cache",
+        "UV_PYTHON_INSTALL_DIR": "${workspaceFolder}/Tools/uv/python"
+      }
     }
   }
 }

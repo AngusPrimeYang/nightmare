@@ -75,3 +75,8 @@ Tools/unreal-mcp-server/.venv/
 Tools/unreal-mcp-server/**/__pycache__/
 Tools/unreal-mcp-server/*.log
 
+# Portable uv local cache / managed CPython (keep dist/ zip + bin/ in repo)
+Tools/uv/cache/
+Tools/uv/python/
+Tools/uv/bin/*.tmp
+
