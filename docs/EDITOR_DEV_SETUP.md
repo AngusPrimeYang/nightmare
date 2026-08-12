@@ -19,7 +19,7 @@
 | 6 | 讓玩家控制該 Pawn | `[x]` | `NightmareDevGameMode` 預設 Pawn；關卡已無搶控制的 `BP_DevPawn_Dev` |
 | 7 | 放置 `NightmarePickupActor` | `[x]` | 關卡已放 `GrayPickup_A/B/C`（旋轉灰盒） |
 | 8 | PIE 煙霧驗證 | `[x]` | 可 WASD／滑鼠；第三人稱臂相機；Dev 螢幕字 HUD |
-| 9 | Tick／撿物橋接 | `[x]` 路徑 B | Tick + E／F／1–3／Space；滿格 E 顯示 Inventory full（toast 待編譯） |
+| 9 | Tick／撿物橋接 | `[x]` 路徑 B | Tick + E／F／1–3；**P11** Space 跳躍（待編譯驗收） |
 
 **目前焦點：** **P1** 刷物呈現＋生成時 roll。P11 跳躍已過。滿格不可再撿（契約已寫；Spec 已有）。
 
