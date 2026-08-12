@@ -13,7 +13,8 @@ public class Nightmare : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
-			"InputCore"
+			"InputCore",
+			"EnhancedInput"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

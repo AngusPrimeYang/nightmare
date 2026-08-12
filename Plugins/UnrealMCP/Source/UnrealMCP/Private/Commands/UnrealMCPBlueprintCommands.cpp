@@ -20,6 +20,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/Character.h"
 
 FUnrealMCPBlueprintCommands::FUnrealMCPBlueprintCommands()
 {
@@ -62,6 +63,10 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleCommand(const FString
     else if (CommandType == TEXT("set_pawn_properties"))
     {
         return HandleSetPawnProperties(Params);
+    }
+    else if (CommandType == TEXT("rename_blueprint"))
+    {
+        return HandleRenameBlueprint(Params);
     }
     
     return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown blueprint command: %s"), *CommandType));
@@ -109,33 +114,61 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleCreateBlueprint(const
         {
             FoundClass = APawn::StaticClass();
         }
+        else if (ClassName == TEXT("ACharacter"))
+        {
+            // Explicit — LoadClass("/Script/Engine.ACharacter") has been unreliable here.
+            FoundClass = ACharacter::StaticClass();
+        }
         else if (ClassName == TEXT("AActor"))
         {
             FoundClass = AActor::StaticClass();
         }
         else
         {
-            // Try loading the class using LoadClass which is more reliable than FindObject
-            const FString ClassPath = FString::Printf(TEXT("/Script/Engine.%s"), *ClassName);
-            FoundClass = LoadClass<AActor>(nullptr, *ClassPath);
-            
+            // UClass path names usually omit the A/U prefix (e.g. /Script/Nightmare.NightmarePickupActor).
+            FString ShortName = ClassName;
+            if (ShortName.StartsWith(TEXT("A")) && ShortName.Len() > 1)
+            {
+                ShortName.RightChopInline(1);
+            }
+
+            auto TryLoad = [&FoundClass](const FString& Path)
+            {
+                if (!FoundClass)
+                {
+                    FoundClass = LoadClass<AActor>(nullptr, *Path);
+                }
+            };
+
+            TryLoad(FString::Printf(TEXT("/Script/Engine.%s"), *ShortName));
+            TryLoad(FString::Printf(TEXT("/Script/Engine.%s"), *ClassName));
+            TryLoad(FString::Printf(TEXT("/Script/Game.%s"), *ShortName));
+            TryLoad(FString::Printf(TEXT("/Script/Nightmare.%s"), *ShortName));
+            TryLoad(FString::Printf(TEXT("/Script/Nightmare.%s"), *ClassName));
+
             if (!FoundClass)
             {
-                // Try alternate paths if not found
-                const FString GameClassPath = FString::Printf(TEXT("/Script/Game.%s"), *ClassName);
-                FoundClass = LoadClass<AActor>(nullptr, *GameClassPath);
+                FoundClass = FindFirstObject<UClass>(*ShortName, EFindFirstObjectOptions::None);
+                if (!FoundClass)
+                {
+                    FoundClass = FindFirstObject<UClass>(*ClassName, EFindFirstObjectOptions::None);
+                }
+                if (FoundClass && !FoundClass->IsChildOf(AActor::StaticClass()))
+                {
+                    FoundClass = nullptr;
+                }
             }
         }
 
         if (FoundClass)
         {
             SelectedParentClass = FoundClass;
-            UE_LOG(LogTemp, Log, TEXT("Successfully set parent class to '%s'"), *ClassName);
+            UE_LOG(LogTemp, Log, TEXT("Successfully set parent class to '%s'"), *SelectedParentClass->GetName());
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("Could not find specified parent class '%s' at paths: /Script/Engine.%s or /Script/Game.%s, defaulting to AActor"), 
-                *ClassName, *ClassName, *ClassName);
+            UE_LOG(LogTemp, Warning, TEXT("Could not find specified parent class '%s' (tried Engine/Game/Nightmare + FindFirstObject), defaulting to AActor"), 
+                *ClassName);
         }
     }
     
@@ -150,16 +183,59 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleCreateBlueprint(const
         // Notify the asset registry
         FAssetRegistryModule::AssetCreated(NewBlueprint);
 
-        // Mark the package dirty
+        // Mark the package dirty and save so Content Browser sees it on disk
         Package->MarkPackageDirty();
+        const FString AssetPath = PackagePath + AssetName;
+        UEditorAssetLibrary::SaveAsset(AssetPath, false);
 
         TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
         ResultObj->SetStringField(TEXT("name"), AssetName);
-        ResultObj->SetStringField(TEXT("path"), PackagePath + AssetName);
+        ResultObj->SetStringField(TEXT("path"), AssetPath);
+        ResultObj->SetStringField(TEXT("parent_class"), SelectedParentClass ? SelectedParentClass->GetName() : TEXT("None"));
         return ResultObj;
     }
 
     return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to create blueprint"));
+}
+
+TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleRenameBlueprint(const TSharedPtr<FJsonObject>& Params)
+{
+    FString OldName;
+    FString NewName;
+    if (!Params->TryGetStringField(TEXT("old_name"), OldName))
+    {
+        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'old_name' parameter"));
+    }
+    if (!Params->TryGetStringField(TEXT("new_name"), NewName))
+    {
+        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'new_name' parameter"));
+    }
+
+    const FString PackagePath = TEXT("/Game/Blueprints/");
+    const FString OldPath = PackagePath + OldName;
+    const FString NewPath = PackagePath + NewName;
+
+    if (!UEditorAssetLibrary::DoesAssetExist(OldPath))
+    {
+        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *OldName));
+    }
+    if (UEditorAssetLibrary::DoesAssetExist(NewPath))
+    {
+        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Target already exists: %s"), *NewName));
+    }
+
+    if (!UEditorAssetLibrary::RenameAsset(OldPath, NewPath))
+    {
+        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Rename failed: %s -> %s"), *OldName, *NewName));
+    }
+
+    UEditorAssetLibrary::SaveAsset(NewPath, false);
+
+    TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
+    ResultObj->SetStringField(TEXT("old_name"), OldName);
+    ResultObj->SetStringField(TEXT("new_name"), NewName);
+    ResultObj->SetStringField(TEXT("path"), NewPath);
+    return ResultObj;
 }
 
 TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleAddComponentToBlueprint(const TSharedPtr<FJsonObject>& Params)
@@ -194,26 +270,26 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleAddComponentToBluepri
     UClass* ComponentClass = nullptr;
 
     // Try to find the class with exact name first
-    ComponentClass = FindObject<UClass>(ANY_PACKAGE, *ComponentType);
+    ComponentClass = FindFirstObject<UClass>(*ComponentType);
     
     // If not found, try with "Component" suffix
     if (!ComponentClass && !ComponentType.EndsWith(TEXT("Component")))
     {
         FString ComponentTypeWithSuffix = ComponentType + TEXT("Component");
-        ComponentClass = FindObject<UClass>(ANY_PACKAGE, *ComponentTypeWithSuffix);
+        ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithSuffix);
     }
     
     // If still not found, try with "U" prefix
     if (!ComponentClass && !ComponentType.StartsWith(TEXT("U")))
     {
         FString ComponentTypeWithPrefix = TEXT("U") + ComponentType;
-        ComponentClass = FindObject<UClass>(ANY_PACKAGE, *ComponentTypeWithPrefix);
+        ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithPrefix);
         
         // Try with both prefix and suffix
         if (!ComponentClass && !ComponentType.EndsWith(TEXT("Component")))
         {
             FString ComponentTypeWithBoth = TEXT("U") + ComponentType + TEXT("Component");
-            ComponentClass = FindObject<UClass>(ANY_PACKAGE, *ComponentTypeWithBoth);
+            ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithBoth);
         }
     }
     

@@ -1,0 +1,8 @@
+﻿uv 0.12.2
+asset=uv-x86_64-pc-windows-msvc.zip
+sha256=01442d8ce5c7124151a73e697c836d252c6da853c18c73206d3cc4c2378a91d2
+source=https://github.com/astral-sh/uv/releases/download/0.12.2/uv-x86_64-pc-windows-msvc.zip
+
+cpython_archive=cpython-3.12.13+20260805-x86_64-pc-windows-msvc-install_only_stripped.tar.gz
+cpython_sha256=b304536477587bbb729322b77ac1c59bdb95706651ab2ef38cae0fec77ede00f
+cpython_source=https://github.com/astral-sh/python-build-standalone/releases/download/20260805/cpython-3.12.13%2B20260805-x86_64-pc-windows-msvc-install_only_stripped.tar.gz
