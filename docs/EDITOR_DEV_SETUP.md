@@ -1,9 +1,9 @@
 # Nightmare — Editor 開發組裝追蹤（步驟 1–9）
 
-> 更新日期：2026-08-11  
+> 更新日期：2026-08-12  
 > 目的：把「規則層已完成」之後、在 **Unreal Editor** 要做的人工組裝收成一頁，方便勾選追蹤。  
 > 狀態：`[x]` 已完成　`[ ]` 待執行　`[~]` 可選／替代路徑　`[—]` 僅說明、無需勾選  
-> 相關：規則進度見 `docs/GAMEPLAY_SLICE.md`；基建閉環見 `docs/SETUP_PHASES.md`。
+> 相關：規則進度見 `docs/GAMEPLAY_SLICE.md`；灰盒／玩法延伸待辦見同文件 **§7**；基建閉環見 `docs/SETUP_PHASES.md`。
 
 ---
 
