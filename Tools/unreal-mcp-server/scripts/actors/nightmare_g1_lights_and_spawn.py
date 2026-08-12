@@ -6,7 +6,7 @@ import sys
 HOST, PORT = "127.0.0.1", 55557
 BP = "BP_GasStationGraybox"
 N = 3  # n*n ceiling lights
-STATION_Z = 90.0  # lift so store floor sits near landscape (~z100)
+STATION_Z = 100.0  # GS_LotPad top; player spawn is separate (C++ safe-spawn)
 LIGHT_Z = 290.0  # under StoreRoof (rel z 320)
 GROUND_Z = 350.0
 

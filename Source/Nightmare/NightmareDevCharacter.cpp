@@ -19,6 +19,7 @@
 #include "NightmareItemInstance.h"
 #include "NightmareMatchComponent.h"
 #include "NightmarePickupActor.h"
+#include "NightmarePlayerEffectComponent.h"
 #include "NightmareStaminaComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -72,6 +73,7 @@ ANightmareDevCharacter::ANightmareDevCharacter()
 	Stamina = CreateDefaultSubobject<UNightmareStaminaComponent>(TEXT("NightmareStamina"));
 	Inventory = CreateDefaultSubobject<UNightmareInventoryComponent>(TEXT("NightmareInventory"));
 	Match = CreateDefaultSubobject<UNightmareMatchComponent>(TEXT("NightmareMatch"));
+	PlayerEffects = CreateDefaultSubobject<UNightmarePlayerEffectComponent>(TEXT("NightmarePlayerEffects"));
 }
 
 void ANightmareDevCharacter::EnsureInputAssets()
@@ -124,7 +126,6 @@ void ANightmareDevCharacter::EnsureInputAssets()
 		}
 	};
 
-	// WASD -> Move Axis2D (X = right, Y = forward)
 	AddAxis2DKey(MoveAction, EKeys::W, false, true);
 	AddAxis2DKey(MoveAction, EKeys::S, true, true);
 	AddAxis2DKey(MoveAction, EKeys::D, false, false);
@@ -158,6 +159,10 @@ void ANightmareDevCharacter::BeginPlay()
 	Super::BeginPlay();
 	EnsureInputAssets();
 	ClampSelectedInventorySlot();
+	if (PlayerEffects)
+	{
+		PlayerEffects->CaptureBaselineFromMovement(GetCharacterMovement());
+	}
 }
 
 void ANightmareDevCharacter::PawnClientRestart()
@@ -177,6 +182,10 @@ void ANightmareDevCharacter::Tick(float DeltaSeconds)
 	if (Match)
 	{
 		Match->TickMatch(DeltaSeconds, Stamina);
+	}
+	if (PlayerEffects)
+	{
+		PlayerEffects->TickEffects(DeltaSeconds, GetCharacterMovement());
 	}
 
 	ClampSelectedInventorySlot();
@@ -203,30 +212,12 @@ void ANightmareDevCharacter::SelectInventorySlot(int32 SlotIndex)
 	}
 }
 
-void ANightmareDevCharacter::SelectSlot0()
-{
-	SelectInventorySlot(0);
-}
+void ANightmareDevCharacter::SelectSlot0() { SelectInventorySlot(0); }
+void ANightmareDevCharacter::SelectSlot1() { SelectInventorySlot(1); }
+void ANightmareDevCharacter::SelectSlot2() { SelectInventorySlot(2); }
 
-void ANightmareDevCharacter::SelectSlot1()
-{
-	SelectInventorySlot(1);
-}
-
-void ANightmareDevCharacter::SelectSlot2()
-{
-	SelectInventorySlot(2);
-}
-
-void ANightmareDevCharacter::StartJump()
-{
-	Jump();
-}
-
-void ANightmareDevCharacter::StopJump()
-{
-	StopJumping();
-}
+void ANightmareDevCharacter::StartJump() { Jump(); }
+void ANightmareDevCharacter::StopJump() { StopJumping(); }
 
 void ANightmareDevCharacter::DrawDevStatusHud() const
 {
@@ -272,6 +263,16 @@ void ANightmareDevCharacter::DrawDevStatusHud() const
 	}
 	GEngine->AddOnScreenDebugMessage(101, 0.0f, FColor::Cyan, InvLine);
 
+	FString EffectLine = TEXT("Effects: none");
+	if (PlayerEffects)
+	{
+		EffectLine = FString::Printf(
+			TEXT("Effects: speed=%.1fs jump=%.1fs"),
+			PlayerEffects->GetSpeedTimeRemaining(),
+			PlayerEffects->GetJumpTimeRemaining());
+	}
+	GEngine->AddOnScreenDebugMessage(104, 0.0f, FColor::Magenta, EffectLine);
+
 	FString MatchLine = TEXT("Match: ?");
 	if (Match)
 	{
@@ -293,7 +294,7 @@ void ANightmareDevCharacter::DrawDevStatusHud() const
 		103,
 		0.0f,
 		FColor::White,
-		TEXT("WASD=Move  Space=Jump  E=Collect  1/2/3=Select  F=Use"));
+		TEXT("WASD Move  Space Jump  E Collect(Hold)  Touch=instant  1/2/3 Select  F Use"));
 }
 
 void ANightmareDevCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -355,6 +356,7 @@ void ANightmareDevCharacter::TryCollectNearbyPickups()
 	int32 NearbyUncollected = 0;
 	int32 CollectedCount = 0;
 	int32 RejectedFull = 0;
+	int32 RejectedTouchOnly = 0;
 
 	for (AActor* Actor : Found)
 	{
@@ -369,6 +371,11 @@ void ANightmareDevCharacter::TryCollectNearbyPickups()
 		}
 
 		++NearbyUncollected;
+		if (Pickup->GetItemDef().InteractMode != ENightmareItemInteractMode::HoldToUse)
+		{
+			++RejectedTouchOnly;
+			continue;
+		}
 		if (Inventory->IsFull())
 		{
 			++RejectedFull;
@@ -398,6 +405,10 @@ void ANightmareDevCharacter::TryCollectNearbyPickups()
 		{
 			GEngine->AddOnScreenDebugMessage(200, 1.5f, FColor::Orange, TEXT("Inventory full — cannot collect"));
 		}
+		else if (RejectedTouchOnly > 0 && CollectedCount == 0)
+		{
+			GEngine->AddOnScreenDebugMessage(200, 1.5f, FColor::Orange, TEXT("Nearby item is TouchInstant — walk into it"));
+		}
 		else
 		{
 			GEngine->AddOnScreenDebugMessage(200, 1.5f, FColor::Orange, TEXT("Nothing to collect"));
@@ -415,7 +426,7 @@ void ANightmareDevCharacter::TryUseSelectedInventorySlot()
 	ClampSelectedInventorySlot();
 	const int32 SlotIndex = SelectedInventorySlot;
 	const float StaminaBefore = Stamina->GetCurrentStamina();
-	const bool bUsed = Inventory->TryUseSlot(SlotIndex, Stamina);
+	const bool bUsed = Inventory->TryUseSlot(SlotIndex, Stamina, PlayerEffects);
 	if (GEngine)
 	{
 		if (bUsed)

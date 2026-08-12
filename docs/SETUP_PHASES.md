@@ -301,8 +301,7 @@ D1 → D2 → D3 → D4 → D5
 
 > Editor 步驟 1–9 煙霧已過（見 `docs/EDITOR_DEV_SETUP.md`）。規則層垂直切片 + 階段 F 雙閘門已完成。
 
-1. **下一刀：P1** — 刷物呈現＋生成時 roll（C++／Spec；`GAMEPLAY_SLICE` §7.2）。  
-2. 已齊：規則層、Editor 煙霧、P10、P11、G1–G3；**滿格拒撿**契約已明文（Spec 早已鎖）。  
-3. （可選）關 Editor 編譯以帶上 Dev「Inventory full」toast。  
-4. （可選）**commit / push**。  
-5. G（Hook／CI）維持可選。
+1. **下一刀：P4+ 敵人**（`GAMEPLAY_SLICE` §7.2）。  
+2. 物品 P1–P3／P8／P9 已雙閘通過。  
+3. （可選）**commit / push**。  
+4. G（Hook／CI）維持可選。

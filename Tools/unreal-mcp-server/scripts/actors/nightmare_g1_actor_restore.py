@@ -8,7 +8,7 @@ HOST, PORT = "127.0.0.1", 55557
 CUBE_BP = "BP_GrayCube"
 CUBE_MESH = "/Engine/BasicShapes/Cube.Cube"
 N = 3
-STATION_Z = 90.0
+STATION_Z = 100.0
 LIGHT_Z_REL = 290.0
 GROUND_Z = 350.0
 

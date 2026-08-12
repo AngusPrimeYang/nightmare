@@ -4,16 +4,11 @@
 
 ## 現況（一句）
 
-P11 跳躍已過。契約已寫明：**背包滿（3 格）不可再撿**（規則／Spec 原本就有；Dev toast 已補強「Inventory full」）。**下一刀：P1**。
+加油站改踩 **`GS_LotPad`（有碰撞灰地坪）**，不再跟 Open World 地景串流高度對賭（那會造成預覽埋土、▶懸空）。**請 Ctrl+S → PIE 確認站在灰地上、建築不懸空。**
 
-## 持有契約（剛確認）
+## 請你
 
-- 上限 **3** 格；滿則 `TryCollectInto` 失敗，地上物**不消失**
-- Spec：`Nightmare.Inventory`／`Nightmare.Pickup` 已鎖滿格拒絕
-
-## 請你（可選）
-
-- 關 Editor → 編譯後 PIE：撿滿 3 格再 E，應見 **Inventory full** toast
-- 或直接說「做 P1」開刷物刀
-
-細節：`docs/GAMEPLAY_SLICE.md` §1／§2／§7.2。
+1. **Ctrl+S**
+2. PIE：人物應站在灰色大地坪上；建築貼地坪
+3. 若地坪仍被土蓋住：在 Viewport 把 `GS_LotPad` 略抬高再存
+4. 關 Editor 後編譯（`ItemSpawner`／SafeSpawn Z 已改到地坪上方）

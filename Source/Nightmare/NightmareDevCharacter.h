@@ -10,6 +10,7 @@
 class UNightmareStaminaComponent;
 class UNightmareInventoryComponent;
 class UNightmareMatchComponent;
+class UNightmarePlayerEffectComponent;
 class UInputComponent;
 class UCameraComponent;
 class USpringArmComponent;
@@ -18,10 +19,7 @@ class UInputAction;
 class UStaticMeshComponent;
 
 /**
- * Dev smoke Character: Nightmare components + Enhanced Input move/look/jump + Tick bridge + G2 graybox body.
- * Spawned by ANightmareDevGameMode (do not leave a competing AutoPossess pawn in the level).
- * P10: keys 1/2/3 select inventory slot; F uses the selected slot once.
- * Jump: Space -> ACharacter::Jump / StopJumping.
+ * Dev Character: components + Enhanced Input + P10 select/use + P11 jump + P8/P9 effects.
  */
 UCLASS(Blueprintable)
 class NIGHTMARE_API ANightmareDevCharacter : public ACharacter
@@ -47,6 +45,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Nightmare|Dev")
 	int32 GetSelectedInventorySlot() const { return SelectedInventorySlot; }
 
+	UFUNCTION(BlueprintPure, Category = "Nightmare|Dev")
+	UNightmarePlayerEffectComponent* GetPlayerEffects() const { return PlayerEffects; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -71,13 +72,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UNightmareMatchComponent> Match;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UNightmarePlayerEffectComponent> PlayerEffects;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
 
-	/** G2 graybox — simple block body (no walk anim). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Graybox")
 	TObjectPtr<UStaticMeshComponent> GrayboxBody;
 
@@ -87,7 +90,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nightmare|Dev", meta = (ClampMin = "50.0"))
 	float CollectRadius;
 
-	/** P10 — which inventory slot F will use (0-based). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nightmare|Dev")
 	int32 SelectedInventorySlot;
 

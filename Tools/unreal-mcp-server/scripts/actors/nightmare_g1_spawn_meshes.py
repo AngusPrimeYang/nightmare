@@ -4,7 +4,7 @@ import json, socket, time, sys
 HOST, PORT = "127.0.0.1", 55557
 CUBE_BP = "BP_GrayCube"
 CUBE_MESH = "/Engine/BasicShapes/Cube.Cube"
-STATION_Z = 90.0
+STATION_Z = 100.0  # pad top / design ground; see nightmare_g1_ground_station.py (GS_LotPad)
 
 PARTS = [
     ("GS_StoreFloor", [0.0, 400.0, 5.0], [12.0, 10.0, 0.1]),

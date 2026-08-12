@@ -30,7 +30,7 @@ print("GS_count", len(gs))
 print("lights", [a["name"] for a in lights])
 print("sample", gs[:3])
 
-STATION_Z = 90.0
+STATION_Z = 100.0
 LIGHT_Z = STATION_Z + 290.0
 N = 3
 x0,x1=-450.0,450.0

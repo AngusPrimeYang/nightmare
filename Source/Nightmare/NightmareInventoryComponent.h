@@ -8,6 +8,7 @@
 
 class UNightmareItemInstance;
 class UNightmareStaminaComponent;
+class UNightmarePlayerEffectComponent;
 
 /** Fixed-capacity inventory (v1: 3 slots). */
 UCLASS(Blueprintable, ClassGroup = (Nightmare), meta = (BlueprintSpawnableComponent))
@@ -41,11 +42,14 @@ public:
 	void ClearAll();
 
 	/**
-	 * Uses item in slot against stamina. Clears slot when RemainingUses hits 0.
-	 * Returns false if slot empty, cannot use, or Stamina is null.
+	 * Uses item in slot. Stamina and/or Effects required depending on item EffectType.
+	 * Clears slot when RemainingUses hits 0.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Nightmare|Inventory")
-	bool TryUseSlot(int32 SlotIndex, UNightmareStaminaComponent* Stamina);
+	bool TryUseSlot(
+		int32 SlotIndex,
+		UNightmareStaminaComponent* Stamina,
+		UNightmarePlayerEffectComponent* Effects);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nightmare|Inventory", meta = (ClampMin = "1", ClampMax = "16"))

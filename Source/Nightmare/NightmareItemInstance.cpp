@@ -14,15 +14,20 @@ bool UNightmareItemInstance::CanUse() const
 	return RemainingUses > 0;
 }
 
-bool UNightmareItemInstance::TryUse(float& OutStaminaDelta)
+bool UNightmareItemInstance::TryUse(FNightmareItemUseResult& OutResult)
 {
-	OutStaminaDelta = 0.0f;
+	OutResult = FNightmareItemUseResult();
 	if (!CanUse())
 	{
 		return false;
 	}
 
 	--RemainingUses;
-	OutStaminaDelta = Def.StaminaDeltaOnUse;
+	OutResult.EffectType = Def.EffectType;
+	OutResult.StaminaDelta = Def.StaminaDeltaOnUse;
+	OutResult.SpeedMultiplier = Def.SpeedMultiplier;
+	OutResult.JumpHeightMultiplier = Def.JumpHeightMultiplier;
+	OutResult.GravityScale = Def.GravityScale;
+	OutResult.EffectDuration = Def.EffectDuration;
 	return true;
 }

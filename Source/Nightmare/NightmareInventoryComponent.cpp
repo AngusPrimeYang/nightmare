@@ -1,7 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "NightmareInventoryComponent.h"
+#include "NightmareItemEffectApply.h"
 #include "NightmareItemInstance.h"
+#include "NightmarePlayerEffectComponent.h"
 #include "NightmareStaminaComponent.h"
 
 UNightmareInventoryComponent::UNightmareInventoryComponent()
@@ -55,7 +57,7 @@ int32 UNightmareInventoryComponent::TryAddItem(UNightmareItemInstance* Item)
 		return INDEX_NONE;
 	}
 
-	for (int32 Index = 0; Index < Slots.Num(); ++Index)
+	for (int32 Index = 0; Index <Slots.Num(); ++Index)
 	{
 		if (!Slots[Index])
 		{
@@ -78,27 +80,46 @@ void UNightmareInventoryComponent::ClearSlot(int32 SlotIndex)
 void UNightmareInventoryComponent::ClearAll()
 {
 	EnsureSlotArray();
-	for (int32 Index = 0; Index < Slots.Num(); ++Index)
+	for (int32 Index = 0; Index <Slots.Num(); ++Index)
 	{
 		Slots[Index] = nullptr;
 	}
 }
 
-bool UNightmareInventoryComponent::TryUseSlot(int32 SlotIndex, UNightmareStaminaComponent* Stamina)
+bool UNightmareInventoryComponent::TryUseSlot(
+	int32 SlotIndex,
+	UNightmareStaminaComponent* Stamina,
+	UNightmarePlayerEffectComponent* Effects)
 {
 	EnsureSlotArray();
-	if (!Stamina || !Slots.IsValidIndex(SlotIndex) || !Slots[SlotIndex])
+	if (!Slots.IsValidIndex(SlotIndex) || !Slots[SlotIndex] || !Slots[SlotIndex]->CanUse())
 	{
 		return false;
 	}
 
-	float Delta = 0.0f;
-	if (!Slots[SlotIndex]->TryUse(Delta))
+	// Peek effect type before consume to validate targets.
+	const ENightmareItemEffectType EffectType = Slots[SlotIndex]->GetEffectType();
+	if (EffectType == ENightmareItemEffectType::Stamina && !Stamina)
+	{
+		return false;
+	}
+	if ((EffectType == ENightmareItemEffectType::Speed || EffectType == ENightmareItemEffectType::Jump) && !Effects)
 	{
 		return false;
 	}
 
-	Stamina->ApplyDelta(Delta);
+	FNightmareItemUseResult Result;
+	if (!Slots[SlotIndex]->TryUse(Result))
+	{
+		return false;
+	}
+
+	if (!NightmareItemEffectApply::ApplyUseResult(Result, Stamina, Effects))
+	{
+		// Should not happen after pre-check; treat as failure without restoring use (rare).
+		return false;
+	}
+
 	if (Slots[SlotIndex]->GetRemainingUses() <= 0)
 	{
 		Slots[SlotIndex] = nullptr;

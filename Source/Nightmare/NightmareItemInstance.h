@@ -22,9 +22,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Nightmare|Item")
 	bool CanUse() const;
 
-	/** Consumes one use when available. OutStaminaDelta receives Def.StaminaDeltaOnUse. */
+	/** Consumes one use and fills OutResult from Def. */
 	UFUNCTION(BlueprintCallable, Category = "Nightmare|Item")
-	bool TryUse(float& OutStaminaDelta);
+	bool TryUse(FNightmareItemUseResult& OutResult);
 
 	UFUNCTION(BlueprintPure, Category = "Nightmare|Item")
 	int32 GetRemainingUses() const { return RemainingUses; }
@@ -34,6 +34,12 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Nightmare|Item")
 	float GetStaminaDeltaOnUse() const { return Def.StaminaDeltaOnUse; }
+
+	UFUNCTION(BlueprintPure, Category = "Nightmare|Item")
+	ENightmareItemEffectType GetEffectType() const { return Def.EffectType; }
+
+	UFUNCTION(BlueprintPure, Category = "Nightmare|Item")
+	ENightmareItemInteractMode GetInteractMode() const { return Def.InteractMode; }
 
 	UFUNCTION(BlueprintPure, Category = "Nightmare|Item")
 	FName GetItemId() const { return Def.ItemId; }

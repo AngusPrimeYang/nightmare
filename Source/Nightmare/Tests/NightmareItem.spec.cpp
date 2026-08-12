@@ -34,12 +34,13 @@ void FNightmareItemSpec::Define()
 			UNightmareItemInstance* Item = NewObject<UNightmareItemInstance>(GetTransientPackage());
 			FNightmareItemDef Def;
 			Def.MaxUses = 2;
+			Def.EffectType = ENightmareItemEffectType::Stamina;
 			Def.StaminaDeltaOnUse = -5.0f;
 			Item->InitializeFromDef(Def);
 
-			float Delta = 0.0f;
-			TestTrue(TEXT("first use"), Item->TryUse(Delta));
-			TestEqual(TEXT("negative delta"), Delta, -5.0f);
+			FNightmareItemUseResult Result;
+			TestTrue(TEXT("first use"), Item->TryUse(Result));
+			TestEqual(TEXT("negative delta"), Result.StaminaDelta, -5.0f);
 			TestEqual(TEXT("uses left"), Item->GetRemainingUses(), 1);
 		});
 
@@ -51,10 +52,27 @@ void FNightmareItemSpec::Define()
 			Def.StaminaDeltaOnUse = 10.0f;
 			Item->InitializeFromDef(Def);
 
-			float Delta = 0.0f;
-			TestTrue(TEXT("consume last"), Item->TryUse(Delta));
-			TestFalse(TEXT("empty"), Item->TryUse(Delta));
+			FNightmareItemUseResult Result;
+			TestTrue(TEXT("consume last"), Item->TryUse(Result));
+			TestFalse(TEXT("empty"), Item->TryUse(Result));
 			TestEqual(TEXT("zero uses"), Item->GetRemainingUses(), 0);
+		});
+
+		It("TryUse fills speed payload for Speed effect", [this]()
+		{
+			UNightmareItemInstance* Item = NewObject<UNightmareItemInstance>(GetTransientPackage());
+			FNightmareItemDef Def;
+			Def.EffectType = ENightmareItemEffectType::Speed;
+			Def.SpeedMultiplier = 1.5f;
+			Def.EffectDuration = 4.0f;
+			Def.MaxUses = 1;
+			Item->InitializeFromDef(Def);
+
+			FNightmareItemUseResult Result;
+			TestTrue(TEXT("use"), Item->TryUse(Result));
+			TestEqual(TEXT("type"), static_cast<uint8>(Result.EffectType), static_cast<uint8>(ENightmareItemEffectType::Speed));
+			TestEqual(TEXT("speed"), Result.SpeedMultiplier, 1.5f);
+			TestEqual(TEXT("dur"), Result.EffectDuration, 4.0f);
 		});
 	});
 }
