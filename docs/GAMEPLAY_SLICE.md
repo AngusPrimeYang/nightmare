@@ -88,7 +88,8 @@
 ## 5. 刻意不做（本切片）
 
 - Speckit／重型規格工具（單頁契約 + Spec + git 足夠）  
-- 多人、大逃殺縮圈、精美關卡／動畫  
+- **本切片內**實作多人（設計與待辦見 **`docs/MULTIPLAYER_STEAM.md`**；含 Steam、Spectator、全滅 popup）  
+- 大逃殺縮圈、精美關卡／動畫  
 - 在迴圈裡改 Blueprint 資產當玩法來源  
 - 角色手腳隨移動擺動（MCP 能力不足；靜態灰盒即可）  
 - 單靠 unreal-mcp 做「？」貼圖、定時刷物、生成時 roll 體力（屬 C++／Editor 分工）  
@@ -100,7 +101,8 @@
 | 文件 | 管什麼 |
 |------|--------|
 | `docs/SETUP_PHASES.md` | 環境／編譯／行為閉環基建 |
-| **本頁** | 玩法規則與系統進度 |
+| **本頁** | 單人 v1 玩法規則與系統進度 |
+| `docs/MULTIPLAYER_STEAM.md` | 多人連線（Steam）設計、M1–M3 勝負、分階段待辦 |
 | `docs/EDITOR_DEV_SETUP.md` | Editor 組裝步驟 1–9（人工／可選 MCP） |
 | `docs/UNREAL_MCP.md` | 專案級 chongdashu Unreal MCP 啟用清單 |
 | `Source/Nightmare/Tests/*.spec.cpp` | 可執行行為契約 |
@@ -188,7 +190,7 @@ MCP 改完關卡後 **務必 Ctrl+S**。
 |---|------|------|------|
 | U1 | `[x]` | **關卡前主選單** | 全黑背景；畫面中上大字 **NIGHTMARE**；中間三選項：**開始遊戲**、**多人連線**、**結束遊戲**。預設進入遊戲先顯示此頁，不直接載入關卡。 |
 | U2 | `[x]` | **開始遊戲 → 進關** | 點 **開始遊戲** 才 OpenLevel／切換至 Dev 關卡並生成 Pawn；主選單隱藏。 |
-| U3 | `[x]` | **多人連線（占位、禁用）** | **多人連線** 灰字顯示；按鈕不可互動（`IsEnabled=false`／不綁 OnClicked）。 |
+| U3 | `[x]` | **多人連線（占位、禁用）** | **多人連線** 灰字顯示；按鈕不可互動（`IsEnabled=false`／不綁 OnClicked）。啟用與 Host/Join 流程見 **`docs/MULTIPLAYER_STEAM.md`** §8.2。 |
 | U4 | `[x]` | **結束遊戲** | 點 **結束遊戲** → `UKismetSystemLibrary::QuitGame`（或同等）結束整個應用。 |
 | U5 | `[x]` | **體力歸零 popup** | 玩家體力 ≤0（`UNightmareMatchComponent` Failed）時跳出遊戲內 modal；選項：**繼續遊戲**、**回到選單**；畫面明顯顯示 **10 秒倒數**。 |
 | U6 | `[x]` | **繼續遊戲 → 重開一局** | 點 **繼續遊戲** 關閉 popup；重置 Match／Stamina／Inventory／刷物／敵人等 → 等同新一局（仍在關卡內，不回主選單）。 |
