@@ -178,3 +178,20 @@ MCP 改完關卡後 **務必 Ctrl+S**。
 | P17 | `[x]` | **子彈傷害為可調參數** | 預設 `MaxStamina/20`（100→**5**）；只打敵人（ignore Pawn）。Spec 鎖公式。 |
 | P18 | `[x]` | **敵人賦予體力（可調＋生成時 roll）** | `UNightmareEnemyHealthComponent`；基準 25（100/4）；`RollHealth` 預設 **5–70**、≥1；與玩家體力分離、無全局消耗。Spec：`Nightmare.EnemyHealth`。 |
 | P19 | `[x]` | **敵人中彈扣體力、歸零消失** | `TryTakeProjectileHit` / `TryApplyHitToEnemy`；HP≤0 → Despawn（碰玩家 P6 仍獨立）。Spec 9 綠，2026-08-13。 |
+
+### 7.3 流程／UI
+
+> 來源：2026-08-13 產品待辦。主選單＋體力歸零 popup；C++ 管流程與狀態，UMG／Widget Blueprint 管呈現（Editor 組裝，迴圈不改 `.uasset` 當玩法來源）。
+
+| # | 狀態 | 項目 | 備註 |
+|---|------|------|------|
+| U1 | `[ ]` | **關卡前主選單** | 全黑背景；畫面中上大字 **NIGHTMARE**；中間三選項：**開始遊戲**、**多人連線**、**結束遊戲**。預設進入遊戲先顯示此頁，不直接載入關卡。 |
+| U2 | `[ ]` | **開始遊戲 → 進關** | 點 **開始遊戲** 才 OpenLevel／切換至 Dev 關卡並生成 Pawn；主選單隱藏。 |
+| U3 | `[ ]` | **多人連線（占位、禁用）** | **多人連線** 灰字顯示；按鈕不可互動（`IsEnabled=false`／不綁 OnClicked）。 |
+| U4 | `[ ]` | **結束遊戲** | 點 **結束遊戲** → `UKismetSystemLibrary::QuitGame`（或同等）結束整個應用。 |
+| U5 | `[ ]` | **體力歸零 popup** | 玩家體力 ≤0（`UNightmareMatchComponent` Failed）時跳出遊戲內 modal；選項：**繼續遊戲**、**回到選單**；畫面明顯顯示 **10 秒倒數**。 |
+| U6 | `[ ]` | **繼續遊戲 → 重開一局** | 點 **繼續遊戲** 關閉 popup；重置 Match／Stamina／Inventory／刷物／敵人等 → 等同新一局（仍在關卡內，不回主選單）。 |
+| U7 | `[ ]` | **回到選單** | 點 **回到選單** 卸載關卡 Pawn／HUD，回到 **U1 主選單**（全黑＋NIGHTMARE）。 |
+| U8 | `[ ]` | **倒數歸零自動回選單** | popup 倒數至 **0** 時，等同自動執行 **回到選單**（U7）；未手動選擇亦離開本局。 |
+
+**實作提示（非阻塞）：** 可用 `UGameInstance` 或專用 `UNightmareFlowSubsystem` 管 Menu ↔ Level 狀態；Failed 時 `SetGamePaused` + 僅 UI 可輸入；Spec filter 建議 `Nightmare.Flow`（倒數、Failed 觸發、Restart、回選單）。
