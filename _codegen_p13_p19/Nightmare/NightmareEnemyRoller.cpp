@@ -9,8 +9,8 @@ UNightmareEnemyRoller::UNightmareEnemyRoller()
 	MoveSpeedMax = 520.0f;
 	AttackPowerMin = 5.0f;
 	AttackPowerMax = 20.0f;
-	HealthMin = 5.0f;
-	HealthMax = 70.0f;
+	HealthMin = 15.0f;
+	HealthMax = 35.0f;
 	// More Wander so motion isn't "always chase at similar feel".
 	ChaseModeChance = 0.50f;
 	HoverLocomotionChance = 0.50f;

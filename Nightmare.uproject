@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{14EA7CBC-4BBF-4E98-A77F-5892ECD1ED69}",
+	"EngineAssociation": "5.8",
 	"Category": "",
 	"Description": "Nightmare — UE5 loop-engineering game project",
 	"Modules": [

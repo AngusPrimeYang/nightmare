@@ -12,6 +12,14 @@ enum class ENightmareEnemyMoveMode : uint8
 	Wander UMETA(DisplayName = "Wander")
 };
 
+/** P12: spawn-time locomotion identity. Chase/Wander may retarget; this type does not. */
+UENUM(BlueprintType)
+enum class ENightmareEnemyLocomotionType : uint8
+{
+	Hover UMETA(DisplayName = "Hover"),
+	Walk UMETA(DisplayName = "Walk")
+};
+
 /** Per-enemy stats assigned at spawn (P5). AttackPower is consumed by P6. */
 USTRUCT(BlueprintType)
 struct NIGHTMARE_API FNightmareEnemyStats

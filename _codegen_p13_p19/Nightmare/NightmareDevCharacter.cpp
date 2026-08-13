@@ -38,8 +38,8 @@ ANightmareDevCharacter::ANightmareDevCharacter()
 	ProjectileSpeed = 6000.0f;
 	ProjectileDamage = 5.0f;
 	ProjectileTrajectory = ENightmareProjectileTrajectory::StraightLine;
-	ProjectileHalfExtents = FVector(40.0f, 8.0f, 8.0f);
-	ProjectileSpawnForwardOffset = 120.0f;
+	ProjectileHalfExtents = FVector(40.0f, 4.0f, 4.0f);
+	ProjectileSpawnForwardOffset = 80.0f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;

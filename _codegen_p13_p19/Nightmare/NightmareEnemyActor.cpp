@@ -43,7 +43,6 @@ ANightmareEnemyActor::ANightmareEnemyActor()
 	BodyCollision->SetCollisionObjectType(ECC_WorldDynamic);
 	BodyCollision->SetCollisionResponseToAllChannels(ECR_Block);
 	BodyCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	BodyCollision->SetGenerateOverlapEvents(true);
 	BodyCollision->SetCanEverAffectNavigation(false);
 
 	GrayboxMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GrayboxMesh"));
@@ -62,7 +61,6 @@ ANightmareEnemyActor::ANightmareEnemyActor()
 	TouchSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	TouchSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	TouchSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	TouchSphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	TouchSphere->SetGenerateOverlapEvents(true);
 
 	EnemyHealth = CreateDefaultSubobject<UNightmareEnemyHealthComponent>(TEXT("EnemyHealth"));
