@@ -76,7 +76,7 @@
 1. 階段 **F**：**完成**  
 2. 規則層 `Stamina` → `Item` → `Inventory` → `Match` → `Spawn` → `Pickup`：**完成**  
 3. **Editor 組裝：** 見 **`docs/EDITOR_DEV_SETUP.md`** — 步驟 6–9B + Pickup 煙霧已過（移動／E 撿／F 用／Dev HUD）  
-4. **物品 P1–P3／P8–P11 + 敵人 P4–P7 已落地** → 下一刀可做呈現／鏡頭，或回頭調數值  
+4. **物品 P1–P3／P8–P11 + 敵人 P4–P7 已落地**；**P12 浮空／步行**與 **P13–P19 射擊／敵人體力**仍在 backlog  
 5. 其後鏡頭／美術換皮  
 
 ---
@@ -104,7 +104,7 @@
 
 ---
 
-## 7. 待辦 backlog（2026-08-12）
+## 7. 待辦 backlog（2026-08-13）
 
 > 來源：產品／呈現討論收斂。灰盒可用 MCP／人工組裝；玩法規則仍以 C++ + Spec 為準。
 
@@ -115,6 +115,7 @@
 | G1 | `[x]` | **美式加油站灰盒** | **`GS_*` + `StoreCeilLight_*` + 權威地坪 `GS_LotPad`（`BP_GrayPad`／BlockAll）**。站體對齊地坪頂 `STATION_Z=100`（勿跟 Open World 地景串流高度對賭：編輯器全載入 vs PIE 串流會「預覽埋土、▶懸空」）。腳本：`nightmare_g1_ground_station.py`。**務必 Ctrl+S。** |
 | G2 | `[x]` | **角色灰盒** | `NightmareDevCharacter`：`GrayboxBody` + `GrayboxHead` |
 | G3 | `[x]` | **物品灰盒** | `NightmarePickupActor` 旋轉 Cube；關卡 `GrayPickup_A/B/C` |
+| G4 | `[ ]` | **子彈灰盒（長條型）** | 預設沿飛行軸的長條灰盒（扁盒／膠囊皆可）；尺寸跟 P16 參數走。勿在迴圈改 `.uasset`；C++ 預設 mesh＋Editor／MCP 組裝。 |
 
 #### 7.1.1 G1 加油站灰盒（現行組裝）
 
@@ -167,3 +168,10 @@ MCP 改完關卡後 **務必 Ctrl+S**。
 | P10 | `[x]` | **背包選格使用（一次一格）** | 2026-08-12 PIE 驗過：`1`/`2`/`3` 選格 + `F` 用當前格；HUD `>n<`；一次一次 `TryUseSlot(Selected)`。 |
 | P11 | `[x]` | **玩家跳躍（Space）** | 2026-08-12 PIE 驗過：`Space` → Jump；出生點抬高後可測。 |
 | P12 | `[ ]` | **敵人：浮空／步行兩種類型** | PIE 現況敵人一律浮空。改為生成時 roll（或參數）選 **Hover**（浮空移動）或 **Walk**（貼地／沿地面移動）；需 Spec 鎖類型行為差異。 |
+| P13 | `[ ]` | **玩家可射擊子彈** | Dev Character 開火輸入（建議滑鼠左鍵／獨立 IA）；生成 `ANightmareProjectileActor`（暫名）。玩法在 C++；需 Spec（建議 `Nightmare.Projectile`）。 |
+| P14 | `[ ]` | **子彈速度為可調參數** | 預設＝玩家標準步行速度 × 10（現行 `MaxWalkSpeed` 起始 600 → **6000**）。`UPROPERTY` 可調；Spec 鎖預設與覆寫。 |
+| P15 | `[ ]` | **子彈彈道為可調參數** | 預設＝玩家面對方向**直線前進**（無重力、無導引）。彈道模式／參數可調，方便之後加弧線等；v1 Spec 只鎖直線。 |
+| P16 | `[ ]` | **子彈大小為可調參數** | 預設長條型（沿飛行軸較長）；碰撞／視覺跟同一組尺寸參數。灰盒見 **G4**。 |
+| P17 | `[ ]` | **子彈傷害為可調參數** | 預設＝玩家基準血量 `MaxStamina` 的 **1/20**（現行 100 → **5**）。對敵人走 P19，不打玩家自己。 |
+| P18 | `[ ]` | **敵人賦予體力（可調＋生成時 roll）** | 預設基準＝玩家 `MaxStamina` 的 **1/4**（現行 100 → **25**）。生成當下隨機增減（Min/Max 可調，沿用 P5 `UNightmareEnemyRoller`）；結果 **至少為 1**。與玩家 `UNightmareStaminaComponent` 分開，避免敵人被全局消耗打穿。 |
+| P19 | `[ ]` | **敵人中彈扣體力、歸零消失** | 子彈 overlap／hit 敵人 → 扣 P17 傷害；體力 ≤0 後 Despawn（對齊 P6 消失，但入口是中彈不是碰玩家）。需 Spec（建議 `Nightmare.EnemyHealth` 或併入 `Nightmare.Projectile`）。 |
