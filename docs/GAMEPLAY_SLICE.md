@@ -69,6 +69,7 @@
 | 敵人浮空／步行 | `Nightmare.EnemyLocomotion` | `[x]` | P12：生成時 roll Hover／Walk；`TickMovement` 鎖離地高度差異 |
 | 子彈 | `Nightmare.Projectile` | `[x]` | P13–P17：`ANightmareProjectileActor` 直線飛行＋可調速度／傷害／尺寸 |
 | 敵人體力 | `Nightmare.EnemyHealth` | `[x]` | P18–P19：`UNightmareEnemyHealthComponent`＋中彈扣血歸零 Despawn |
+| 流程／UI | `Nightmare.Flow` | `[x]` | U1–U8：`ANightmareFlowGameMode`＋C++ UMG 主選單／失敗 popup＋10 秒倒數 |
 
 **完成定義：** 上表 Spec 綠 + 本頁勾選。Dev Map / Pawn 視覺組裝見 §4，不算本表阻塞。
 
@@ -185,13 +186,13 @@ MCP 改完關卡後 **務必 Ctrl+S**。
 
 | # | 狀態 | 項目 | 備註 |
 |---|------|------|------|
-| U1 | `[ ]` | **關卡前主選單** | 全黑背景；畫面中上大字 **NIGHTMARE**；中間三選項：**開始遊戲**、**多人連線**、**結束遊戲**。預設進入遊戲先顯示此頁，不直接載入關卡。 |
-| U2 | `[ ]` | **開始遊戲 → 進關** | 點 **開始遊戲** 才 OpenLevel／切換至 Dev 關卡並生成 Pawn；主選單隱藏。 |
-| U3 | `[ ]` | **多人連線（占位、禁用）** | **多人連線** 灰字顯示；按鈕不可互動（`IsEnabled=false`／不綁 OnClicked）。 |
-| U4 | `[ ]` | **結束遊戲** | 點 **結束遊戲** → `UKismetSystemLibrary::QuitGame`（或同等）結束整個應用。 |
-| U5 | `[ ]` | **體力歸零 popup** | 玩家體力 ≤0（`UNightmareMatchComponent` Failed）時跳出遊戲內 modal；選項：**繼續遊戲**、**回到選單**；畫面明顯顯示 **10 秒倒數**。 |
-| U6 | `[ ]` | **繼續遊戲 → 重開一局** | 點 **繼續遊戲** 關閉 popup；重置 Match／Stamina／Inventory／刷物／敵人等 → 等同新一局（仍在關卡內，不回主選單）。 |
-| U7 | `[ ]` | **回到選單** | 點 **回到選單** 卸載關卡 Pawn／HUD，回到 **U1 主選單**（全黑＋NIGHTMARE）。 |
-| U8 | `[ ]` | **倒數歸零自動回選單** | popup 倒數至 **0** 時，等同自動執行 **回到選單**（U7）；未手動選擇亦離開本局。 |
+| U1 | `[x]` | **關卡前主選單** | 全黑背景；畫面中上大字 **NIGHTMARE**；中間三選項：**開始遊戲**、**多人連線**、**結束遊戲**。預設進入遊戲先顯示此頁，不直接載入關卡。 |
+| U2 | `[x]` | **開始遊戲 → 進關** | 點 **開始遊戲** 才 OpenLevel／切換至 Dev 關卡並生成 Pawn；主選單隱藏。 |
+| U3 | `[x]` | **多人連線（占位、禁用）** | **多人連線** 灰字顯示；按鈕不可互動（`IsEnabled=false`／不綁 OnClicked）。 |
+| U4 | `[x]` | **結束遊戲** | 點 **結束遊戲** → `UKismetSystemLibrary::QuitGame`（或同等）結束整個應用。 |
+| U5 | `[x]` | **體力歸零 popup** | 玩家體力 ≤0（`UNightmareMatchComponent` Failed）時跳出遊戲內 modal；選項：**繼續遊戲**、**回到選單**；畫面明顯顯示 **10 秒倒數**。 |
+| U6 | `[x]` | **繼續遊戲 → 重開一局** | 點 **繼續遊戲** 關閉 popup；重置 Match／Stamina／Inventory／刷物／敵人等 → 等同新一局（仍在關卡內，不回主選單）。 |
+| U7 | `[x]` | **回到選單** | 點 **回到選單** 卸載關卡 Pawn／HUD，回到 **U1 主選單**（全黑＋NIGHTMARE）。 |
+| U8 | `[x]` | **倒數歸零自動回選單** | popup 倒數至 **0** 時，等同自動執行 **回到選單**（U7）；未手動選擇亦離開本局。 |
 
 **實作提示（非阻塞）：** 可用 `UGameInstance` 或專用 `UNightmareFlowSubsystem` 管 Menu ↔ Level 狀態；Failed 時 `SetGamePaused` + 僅 UI 可輸入；Spec filter 建議 `Nightmare.Flow`（倒數、Failed 觸發、Restart、回選單）。
