@@ -48,6 +48,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Nightmare|Dev")
 	UNightmarePlayerEffectComponent* GetPlayerEffects() const { return PlayerEffects; }
 
+	UFUNCTION(BlueprintPure, Category = "Nightmare|Dev")
+	bool IsLookYInverted() const { return bInvertLookY; }
+
+	/** Mouse2D +Y is mouse-up. FPS (bInvertY=false) negates so mouse-up looks up. */
+	UFUNCTION(BlueprintPure, Category = "Nightmare|Dev")
+	static float ComputeLookPitchInput(float MouseY, bool bInvertY);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -89,6 +96,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nightmare|Dev", meta = (ClampMin = "50.0"))
 	float CollectRadius;
+
+	/** When false (default): mouse-up looks up (FPS). When true: mouse-up looks down. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nightmare|Dev")
+	bool bInvertLookY;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nightmare|Dev")
 	int32 SelectedInventorySlot;

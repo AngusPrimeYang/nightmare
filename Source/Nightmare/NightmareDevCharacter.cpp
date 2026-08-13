@@ -31,6 +31,7 @@ ANightmareDevCharacter::ANightmareDevCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	CollectRadius = 200.0f;
+	bInvertLookY = false;
 	SelectedInventorySlot = 0;
 
 	bUseControllerRotationPitch = false;
@@ -80,6 +81,11 @@ ANightmareDevCharacter::ANightmareDevCharacter()
 	Inventory = CreateDefaultSubobject<UNightmareInventoryComponent>(TEXT("NightmareInventory"));
 	Match = CreateDefaultSubobject<UNightmareMatchComponent>(TEXT("NightmareMatch"));
 	PlayerEffects = CreateDefaultSubobject<UNightmarePlayerEffectComponent>(TEXT("NightmarePlayerEffects"));
+}
+
+float ANightmareDevCharacter::ComputeLookPitchInput(float MouseY, bool bInvertY)
+{
+	return bInvertY ? MouseY : -MouseY;
 }
 
 void ANightmareDevCharacter::EnsureInputAssets()
@@ -360,7 +366,7 @@ void ANightmareDevCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D Axis = Value.Get<FVector2D>();
 	AddControllerYawInput(Axis.X);
-	AddControllerPitchInput(Axis.Y);
+	AddControllerPitchInput(ComputeLookPitchInput(Axis.Y, bInvertLookY));
 }
 
 void ANightmareDevCharacter::TryCollectNearbyPickups()
